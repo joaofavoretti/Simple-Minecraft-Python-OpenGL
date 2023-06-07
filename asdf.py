@@ -4,8 +4,10 @@ from OpenGL.GL import *
 import numpy as np
 from PIL import Image
 
-import Block
-import Camera
+from Block import Block
+from Dirt import Dirt
+from Grass import Grass
+from Camera import Camera
 
 VERTEX_SHADER_FNAME = './shaders/vertex.glsl'
 FRAGMENT_SHADER_FNAME = './shaders/fragment.glsl'
@@ -107,20 +109,24 @@ def keyHandler(window, key, scancode, action, mods):
         mods(int) - Modifiers
     """
 
-    global c
+    global camera
 
     # If not key hold, return
     if action != glfw.PRESS and action != glfw.REPEAT:
         return
     
     if key == glfw.KEY_W:
-        c.moveForward(1.0)
+        camera.moveForward(1.0)
     elif key == glfw.KEY_S:
-        c.moveBackward(1.0)
+        camera.moveBackward(1.0)
     elif key == glfw.KEY_A:
-        c.moveLeft(1.0)
+        camera.moveLeft(1.0)
     elif key == glfw.KEY_D:
-        c.moveRight(1.0)
+        camera.moveRight(1.0)
+    elif key == glfw.KEY_SPACE:
+        camera.moveUp(1.0)
+    elif key == glfw.KEY_Z:
+        camera.moveDown(1.0)
 
 def mouseHandler(window, xpos, ypos):
     """
@@ -131,16 +137,17 @@ def mouseHandler(window, xpos, ypos):
         ypos(float) - Y position
     """
 
-    global c
+    global camera
 
-    c.processMouseMovement(xpos, ypos)
+    camera.processMouseMovement(xpos, ypos)
 
 def loadTexture(texture_file):
     """
-        Load the texture file
+        Load the texture file. Texture is 16x16. Pixelation is intentional
 
         texture_file(str) - Texture file path
     """
+    glEnable(GL_TEXTURE_2D)
 
     texture = glGenTextures(1)
     glBindTexture(GL_TEXTURE_2D, 0)
@@ -150,8 +157,8 @@ def loadTexture(texture_file):
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
 
     # Set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)	
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
 
     # Load image
     image = Image.open(texture_file)
@@ -161,7 +168,7 @@ def loadTexture(texture_file):
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.size[0], image.size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, img_data)
 
 def main():
-    global c
+    global camera
 
     vertex_code = open(VERTEX_SHADER_FNAME, 'r').read()
     fragment_code = open(FRAGMENT_SHADER_FNAME, 'r').read()
@@ -171,7 +178,6 @@ def main():
     glfw.set_cursor_pos_callback(window, mouseHandler)
     glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
 
-    glEnable(GL_TEXTURE_2D)
     loadTexture(TEXTURE_FILE)
 
     glfw.show_window(window)
@@ -179,23 +185,37 @@ def main():
     glClearColor(0.678, 0.847, 0.901, 1.0)
 
     # TODO: Add a way to keep information about the vertex indices for each Block
-    b = Block.Block((0.0, 0.0, 0.0))
-    c = Camera.Camera()
+    grass = Grass((0.0, 0.0, 0.0), 0)
+    dirt = Dirt((0.0, -1.0, 0.0), 1)
+    block = Block((0.0, 1.0, 0.0), 2)
+    dirt2 = Dirt((1.0, -1.0, 0.0), 3)
+    grass2 = Grass((1.0, 0.0, 0.0), 4)
+    camera = Camera()
 
-    vertices = b.getVertices()
-    texture = b.getTexture()
-    print(texture)
+    vertices = np.empty((0, 3), dtype=np.float32)
+    vertices = np.vstack((vertices, grass.getVertices()))
+    vertices = np.vstack((vertices, dirt.getVertices()))
+    vertices = np.vstack((vertices, block.getVertices()))
+    vertices = np.vstack((vertices, dirt2.getVertices()))
+    vertices = np.vstack((vertices, grass2.getVertices()))
+
+    texture = np.empty((0, 2), dtype=np.float32)
+    texture = np.vstack((texture, grass.getTexture()))
+    texture = np.vstack((texture, dirt.getTexture()))
+    texture = np.vstack((texture, block.getTexture()))
+    texture = np.vstack((texture, dirt2.getTexture()))
+    texture = np.vstack((texture, grass2.getTexture()))
     sendVerticesAndTexture(program, vertices, texture)
-    
-    # TODO: todo
-    # texture = b.getTexture()
-    # sendTexture(program, texture)
 
     while not glfw.window_should_close(window):
         glfw.poll_events()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         
-        b.draw(program, c.getView(), c.getProj())
+        dirt.draw(program, camera.getView(), camera.getProj())
+        grass.draw(program, camera.getView(), camera.getProj())
+        block.draw(program, camera.getView(), camera.getProj())
+        dirt2.draw(program, camera.getView(), camera.getProj())
+        grass2.draw(program, camera.getView(), camera.getProj())
 
         glfw.swap_buffers(window)
 

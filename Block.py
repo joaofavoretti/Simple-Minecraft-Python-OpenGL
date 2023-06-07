@@ -4,7 +4,7 @@ from OpenGL.GL import *
 import numpy as np
 
 class Block:
-    def __init__ (self, pos):
+    def __init__ (self, pos, block_index):
         """
             Initialize the block centered at (x, y, z)
 
@@ -12,10 +12,20 @@ class Block:
         """
 
         self.size = 1.0
-        
-        self.verts = self.defineVertices(pos, self.size)
 
-        self.texture = self.defineTexture()
+        self.block_index = block_index
+
+        # if attribute texture_indices is not defined, define it
+        if not hasattr(self, "texture_indices"):
+            self.texture_indices = {
+                "top": (0, 0),
+                "bottom": (0, 0),
+                "side": (0, 0)
+            }
+        
+        self.vertices = self.defineVertices(pos, self.size)
+
+        self.texture = self.defineTexture(self.texture_indices)
         
         self.colors = self.defineColors()
 
@@ -74,41 +84,43 @@ class Block:
                          (1.0, 1.0, 1.0, 1.0),
                          (1.0, 1.0, 0.0, 1.0)])
 
-    def defineTexture(self):
+    def defineTexture(self, texture_indices):
         """
-            Define the texture of the block
+            Define the texture of the block. Default texture
         """
+
+        size = 0.0625
+
         return np.array([
+            (texture_indices["side"][0] * size, texture_indices["side"][1] * size),
+            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size),
+            (texture_indices["side"][0] * size, texture_indices["side"][1] * size + size),
+            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size + size),
 
-            (0.0, 0.0),
-            (0.0625, 0.0),
-            (0.0, 0.0625),
-            (0.0625, 0.0625),
+            (texture_indices["side"][0] * size, texture_indices["side"][1] * size),
+            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size),
+            (texture_indices["side"][0] * size, texture_indices["side"][1] * size + size),
+            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size + size),
 
-            (0.0, 0.0),
-            (1.0, 0.0),
-            (0.0, 1.0),
-            (1.0, 1.0),
+            (texture_indices["side"][0] * size, texture_indices["side"][1] * size),
+            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size),
+            (texture_indices["side"][0] * size, texture_indices["side"][1] * size + size),
+            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size + size),
 
-            (0.0, 0.0),
-            (1.0, 0.0),
-            (0.0, 1.0),
-            (1.0, 1.0),
-
-            (0.0, 0.0),
-            (1.0, 0.0),
-            (0.0, 1.0),
-            (1.0, 1.0),
-
-            (0.0, 0.0),
-            (1.0, 0.0),
-            (0.0, 1.0),
-            (1.0, 1.0),
-
-            (0.0, 0.0),
-            (1.0, 0.0),
-            (0.0, 1.0),
-            (1.0, 1.0)
+            (texture_indices["side"][0] * size, texture_indices["side"][1] * size),
+            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size),
+            (texture_indices["side"][0] * size, texture_indices["side"][1] * size + size),
+            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size + size),
+            
+            (texture_indices["bottom"][0] * size, texture_indices["bottom"][1] * size),
+            (texture_indices["bottom"][0] * size + size, texture_indices["bottom"][1] * size),
+            (texture_indices["bottom"][0] * size, texture_indices["bottom"][1] * size + size),
+            (texture_indices["bottom"][0] * size + size, texture_indices["bottom"][1] * size + size),
+            
+            (texture_indices["top"][0] * size, texture_indices["top"][1] * size),
+            (texture_indices["top"][0] * size + size, texture_indices["top"][1] * size),
+            (texture_indices["top"][0] * size, texture_indices["top"][1] * size + size),
+            (texture_indices["top"][0] * size + size, texture_indices["top"][1] * size + size)
         ], dtype=np.float32)
 
     def getVertices(self):
@@ -116,7 +128,7 @@ class Block:
             Return the vertices of the block
         """
         
-        return self.verts
+        return self.vertices
 
     def getTexture(self):
         """
@@ -124,36 +136,6 @@ class Block:
         """
         
         return self.texture
-
-    def drawFace(self, program, face):
-        """
-            Draw a face of the block
-
-            program(OpenGL.GL.shaders.ShaderProgram) - Shader program
-            vert_start_idx(int) - Index of the first vertex of the block. Offset in the vertex array
-            face(int) - Face to draw. Index in the vertex array of the cubie
-        """
-        
-        # loc_color = glGetUniformLocation(program, "color")
-        
-        # # Draw the face of the cubie according the the color
-        # colorR, colorG, colorB, colorA = self.colors[face]
-        # glUniform4f(loc_color, colorR, colorG, colorB, colorA)
-
-        # Draw the texture of the face
-        glBindTexture(GL_TEXTURE_2D, 0)
-
-        glDrawArrays(GL_TRIANGLE_STRIP, face * 4, 4)
-
-        # Draw the black border of the face        
-        # border_vertex_idx = np.array([face * 4 + 0, 
-        #                               face * 4 + 1,
-        #                               face * 4 + 3,
-        #                               face * 4 + 2,
-        #                               face * 4 + 0])
-        
-        # glUniform4f(loc_color, 0.0, 0.0, 0.0, 1.0)
-        # glDrawElements(GL_LINE_STRIP, len(border_vertex_idx), GL_UNSIGNED_INT, border_vertex_idx)
 
     def draw(self, program, view, proj):
         
@@ -170,5 +152,5 @@ class Block:
         glUniformMatrix4fv(loc_projection, 1, GL_TRUE, projection_array)
 
         for face in range(6):
-            self.drawFace(program, face)
+            glDrawArrays(GL_TRIANGLE_STRIP, self.block_index * 24 + face * 4, 4)
             

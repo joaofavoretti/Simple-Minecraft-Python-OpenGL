@@ -49,6 +49,14 @@ class Camera:
         self.cameraPos += glm.normalize(glm.cross(self.cameraFront, self.cameraUp)) * deltaTime * 0.1
         self.updateView()
 
+    def moveUp(self, deltaTime):
+        self.cameraPos += self.cameraUp * deltaTime * 0.1
+        self.updateView()
+
+    def moveDown(self, deltaTime):
+        self.cameraPos -= self.cameraUp * deltaTime * 0.1
+        self.updateView()
+
     def processMouseMovement(self, xpos, ypos):
         if self.firstMouse:
             self.lastX = xpos
