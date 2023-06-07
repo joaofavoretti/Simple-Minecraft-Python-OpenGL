@@ -9,6 +9,7 @@ from Dirt import Dirt
 from Grass import Grass
 from Camera import Camera
 from Chunk import Chunk
+from World import World
 
 VERTEX_SHADER_FNAME = './shaders/vertex.glsl'
 FRAGMENT_SHADER_FNAME = './shaders/fragment.glsl'
@@ -171,6 +172,7 @@ def loadTexture(texture_file):
 def main():
     global camera
 
+    # Setup boring code
     vertex_code = open(VERTEX_SHADER_FNAME, 'r').read()
     fragment_code = open(FRAGMENT_SHADER_FNAME, 'r').read()
 
@@ -185,23 +187,47 @@ def main():
     glEnable(GL_DEPTH_TEST)
     glClearColor(0.678, 0.847, 0.901, 1.0)
 
+    # Now that the magic starts
     camera = Camera()
 
-    chunk = Chunk((0, 0))
+    chunk1 = Chunk((1,0))
+    chunk2 = Chunk((0,0))
+    chunk1.setVerticeIndex(0)
+    chunk2.setVerticeIndex(chunk1.getLastVerticeIndex())
 
-    vertices = chunk.getVertices()
-    texture = chunk.getTexture()
+    print(chunk1.getLastVerticeIndex())
+    print(chunk2.getLastVerticeIndex())
+
+    vertices = np.empty((0, 3), dtype=np.float32)
+    vertices = np.vstack((vertices, chunk1.getVertices()))
+    vertices = np.vstack((vertices, chunk2.getVertices()))
+
+    print(len(vertices))
+
+    texture = np.empty((0, 2), dtype=np.float32)
+    texture = np.vstack((texture, chunk1.getTexture()))
+    texture = np.vstack((texture, chunk2.getTexture()))
+    print(len(texture))
 
     sendVerticesAndTexture(program, vertices, texture)
 
+    t = 0
+
+    print('Camera coords')
     while not glfw.window_should_close(window):
+        if t == 60:
+            print(f'{np.round(camera.cameraPos)}           ', end='\r')
+            t = 0
+        
+        t += 1
+
         glfw.poll_events()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-        
-        # Polygon mode
+
         # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
-        chunk.draw(program, camera)
+        chunk1.draw(program, camera)
+        chunk2.draw(program, camera)
 
         glfw.swap_buffers(window)
 

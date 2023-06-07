@@ -123,7 +123,7 @@ class Block:
             (texture_indices["top"][0] * size + size, texture_indices["top"][1] * size + size)
         ], dtype=np.float32)
 
-    def setBlockIndex(self, index):
+    def setVerticeIndex(self, index):
         """
             Set the block index
         """
