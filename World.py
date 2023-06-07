@@ -19,8 +19,8 @@ class World:
         """
         chunks = []
         last_vertice_index = 0
-        for x in range(1):
-            for z in range(1):
+        for x in range(2):
+            for z in range(2):
                 c = Chunk((x, z))
                 c.setVerticeIndex(last_vertice_index)
                 last_vertice_index = c.getLastVerticeIndex()

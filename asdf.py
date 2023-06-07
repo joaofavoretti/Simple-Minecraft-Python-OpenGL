@@ -54,7 +54,7 @@ def createWindow(vert_code, frag_code):
     """
 
     glfw.init()
-    glfw.window_hint(glfw.VISIBLE, glfw.FALSE);
+    glfw.window_hint(glfw.VISIBLE, glfw.FALSE)
     window = glfw.create_window(WINDOW_WIDTH, WINDOW_HEIGHT, "Cubo", None, None)
     glfw.make_context_current(window)
 
@@ -184,30 +184,19 @@ def main():
     loadTexture(TEXTURE_FILE)
 
     glfw.show_window(window)
+    # glEnable(GL_CULL_FACE)
+    # glCullFace(GL_BACK)
     glEnable(GL_DEPTH_TEST)
+    glDepthFunc(GL_LESS)
     glClearColor(0.678, 0.847, 0.901, 1.0)
 
     # Now that the magic starts
     camera = Camera()
 
-    chunk1 = Chunk((1,0))
-    chunk2 = Chunk((0,0))
-    chunk1.setVerticeIndex(0)
-    chunk2.setVerticeIndex(chunk1.getLastVerticeIndex())
+    world = World()
 
-    print(chunk1.getLastVerticeIndex())
-    print(chunk2.getLastVerticeIndex())
-
-    vertices = np.empty((0, 3), dtype=np.float32)
-    vertices = np.vstack((vertices, chunk1.getVertices()))
-    vertices = np.vstack((vertices, chunk2.getVertices()))
-
-    print(len(vertices))
-
-    texture = np.empty((0, 2), dtype=np.float32)
-    texture = np.vstack((texture, chunk1.getTexture()))
-    texture = np.vstack((texture, chunk2.getTexture()))
-    print(len(texture))
+    vertices = world.getVertices()
+    texture = world.getTexture()
 
     sendVerticesAndTexture(program, vertices, texture)
 
@@ -224,10 +213,9 @@ def main():
         glfw.poll_events()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
-        chunk1.draw(program, camera)
-        chunk2.draw(program, camera)
+        world.draw(program, camera)
 
         glfw.swap_buffers(window)
 
