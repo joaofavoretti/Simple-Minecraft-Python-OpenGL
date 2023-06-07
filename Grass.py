@@ -6,7 +6,7 @@ from Block import Block
 
 class Grass (Block):
     
-    def __init__(self, pos, block_index):
+    def __init__(self, pos):
 
         self.texture_indices = {
             'top': (2, 0),
@@ -14,4 +14,4 @@ class Grass (Block):
             'side': (3, 0),
         }
         
-        super().__init__(pos, block_index)
+        super().__init__(pos)

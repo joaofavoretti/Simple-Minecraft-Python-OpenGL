@@ -4,7 +4,7 @@ from OpenGL.GL import *
 import numpy as np
 
 class Block:
-    def __init__ (self, pos, block_index):
+    def __init__ (self, pos):
         """
             Initialize the block centered at (x, y, z)
 
@@ -13,7 +13,7 @@ class Block:
 
         self.size = 1.0
 
-        self.block_index = block_index
+        self.block_index = 0
 
         # if attribute texture_indices is not defined, define it
         if not hasattr(self, "texture_indices"):
@@ -122,6 +122,13 @@ class Block:
             (texture_indices["top"][0] * size, texture_indices["top"][1] * size + size),
             (texture_indices["top"][0] * size + size, texture_indices["top"][1] * size + size)
         ], dtype=np.float32)
+
+    def setBlockIndex(self, index):
+        """
+            Set the block index
+        """
+
+        self.block_index = index
 
     def getVertices(self):
         """

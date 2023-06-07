@@ -8,6 +8,7 @@ from Block import Block
 from Dirt import Dirt
 from Grass import Grass
 from Camera import Camera
+from Chunk import Chunk
 
 VERTEX_SHADER_FNAME = './shaders/vertex.glsl'
 FRAGMENT_SHADER_FNAME = './shaders/fragment.glsl'
@@ -184,38 +185,23 @@ def main():
     glEnable(GL_DEPTH_TEST)
     glClearColor(0.678, 0.847, 0.901, 1.0)
 
-    # TODO: Add a way to keep information about the vertex indices for each Block
-    grass = Grass((0.0, 0.0, 0.0), 0)
-    dirt = Dirt((0.0, -1.0, 0.0), 1)
-    block = Block((0.0, 1.0, 0.0), 2)
-    dirt2 = Dirt((1.0, -1.0, 0.0), 3)
-    grass2 = Grass((1.0, 0.0, 0.0), 4)
     camera = Camera()
 
-    vertices = np.empty((0, 3), dtype=np.float32)
-    vertices = np.vstack((vertices, grass.getVertices()))
-    vertices = np.vstack((vertices, dirt.getVertices()))
-    vertices = np.vstack((vertices, block.getVertices()))
-    vertices = np.vstack((vertices, dirt2.getVertices()))
-    vertices = np.vstack((vertices, grass2.getVertices()))
+    chunk = Chunk((0, 0))
 
-    texture = np.empty((0, 2), dtype=np.float32)
-    texture = np.vstack((texture, grass.getTexture()))
-    texture = np.vstack((texture, dirt.getTexture()))
-    texture = np.vstack((texture, block.getTexture()))
-    texture = np.vstack((texture, dirt2.getTexture()))
-    texture = np.vstack((texture, grass2.getTexture()))
+    vertices = chunk.getVertices()
+    texture = chunk.getTexture()
+
     sendVerticesAndTexture(program, vertices, texture)
 
     while not glfw.window_should_close(window):
         glfw.poll_events()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         
-        dirt.draw(program, camera.getView(), camera.getProj())
-        grass.draw(program, camera.getView(), camera.getProj())
-        block.draw(program, camera.getView(), camera.getProj())
-        dirt2.draw(program, camera.getView(), camera.getProj())
-        grass2.draw(program, camera.getView(), camera.getProj())
+        # Polygon mode
+        # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+
+        chunk.draw(program, camera)
 
         glfw.swap_buffers(window)
 
