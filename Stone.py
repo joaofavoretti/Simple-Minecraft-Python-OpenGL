@@ -9,9 +9,12 @@ class Stone (Block):
     def __init__(self, pos):
 
         self.texture_indices = {
-            'top': (4, 0),
-            'bottom': (4, 0),
-            'side': (4, 0),
+            "top": (4, 0),
+            "bottom": (4, 0),
+            "left": (4, 1),
+            "right": (4, 1),
+            "front": (4, 2),
+            "back": (4, 2),
         }
         
         super().__init__(pos)

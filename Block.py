@@ -20,14 +20,15 @@ class Block:
             self.texture_indices = {
                 "top": (0, 0),
                 "bottom": (0, 0),
-                "side": (0, 0)
+                "left": (0, 1),
+                "right": (0, 1),
+                "front": (0, 2),
+                "back": (0, 2),
             }
         
         self.vertices = self.defineVertices(pos, self.size)
 
         self.texture = self.defineTexture(self.texture_indices)
-        
-        self.colors = self.defineColors()
 
         self.model = glm.mat4(1.0)
 
@@ -72,18 +73,6 @@ class Block:
             (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2)
         ], dtype=np.float32)
 
-    def defineColors(self):
-        """
-            Define the colors of the 1.0block
-        """
-
-        return np.array([(1.0, 0.0, 0.0, 1.0),
-                         (0.0, 0.0, 1.0, 1.0),
-                         (1.0, 0.6, 0.0, 1.0),
-                         (0.0, 1.0, 0.0, 1.0),
-                         (1.0, 1.0, 1.0, 1.0),
-                         (1.0, 1.0, 0.0, 1.0)])
-
     def defineTexture(self, texture_indices):
         """
             Define the texture of the block. Default texture
@@ -92,25 +81,25 @@ class Block:
         size = 0.0625
 
         return np.array([
-            (texture_indices["side"][0] * size, texture_indices["side"][1] * size),
-            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size),
-            (texture_indices["side"][0] * size, texture_indices["side"][1] * size + size),
-            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size + size),
+            (texture_indices["front"][0] * size, texture_indices["front"][1] * size),
+            (texture_indices["front"][0] * size + size, texture_indices["front"][1] * size),
+            (texture_indices["front"][0] * size, texture_indices["front"][1] * size + size),
+            (texture_indices["front"][0] * size + size, texture_indices["front"][1] * size + size),
 
-            (texture_indices["side"][0] * size, texture_indices["side"][1] * size),
-            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size),
-            (texture_indices["side"][0] * size, texture_indices["side"][1] * size + size),
-            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size + size),
+            (texture_indices["left"][0] * size, texture_indices["left"][1] * size),
+            (texture_indices["left"][0] * size + size, texture_indices["left"][1] * size),
+            (texture_indices["left"][0] * size, texture_indices["left"][1] * size + size),
+            (texture_indices["left"][0] * size + size, texture_indices["left"][1] * size + size),
+            
+            (texture_indices["back"][0] * size, texture_indices["back"][1] * size),
+            (texture_indices["back"][0] * size + size, texture_indices["back"][1] * size),
+            (texture_indices["back"][0] * size, texture_indices["back"][1] * size + size),
+            (texture_indices["back"][0] * size + size, texture_indices["back"][1] * size + size),
 
-            (texture_indices["side"][0] * size, texture_indices["side"][1] * size),
-            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size),
-            (texture_indices["side"][0] * size, texture_indices["side"][1] * size + size),
-            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size + size),
-
-            (texture_indices["side"][0] * size, texture_indices["side"][1] * size),
-            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size),
-            (texture_indices["side"][0] * size, texture_indices["side"][1] * size + size),
-            (texture_indices["side"][0] * size + size, texture_indices["side"][1] * size + size),
+            (texture_indices["right"][0] * size, texture_indices["right"][1] * size),
+            (texture_indices["right"][0] * size + size, texture_indices["right"][1] * size),
+            (texture_indices["right"][0] * size, texture_indices["right"][1] * size + size),
+            (texture_indices["right"][0] * size + size, texture_indices["right"][1] * size + size),
             
             (texture_indices["bottom"][0] * size, texture_indices["bottom"][1] * size),
             (texture_indices["bottom"][0] * size + size, texture_indices["bottom"][1] * size),
