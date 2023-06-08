@@ -2,6 +2,7 @@ import glfw
 import glm
 from OpenGL.GL import *
 import numpy as np
+from perlin_noise import PerlinNoise
 
 from Block import Block
 from Grass import Grass
@@ -27,6 +28,8 @@ class Chunk:
 
         self.chunk_vertice_index = 0
 
+        self.noise = PerlinNoise(octaves=4, seed=hash(str(self.pos)))
+
         self.blocks = self.defineBlocks()
 
     def defineBlocks(self):
@@ -39,11 +42,20 @@ class Chunk:
 
         for x in range(self.x_length):
             for z in range(self.z_length):
-                blocks.append(Dirt((chunk_pos_x * 16 + x, chunk_pos_y + z, chunk_pos_z * 16 + z)))
-                blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
+                height = int(self.noise([x / 50.0, z / 50.0]) * 5 + 2) + 1
 
-                blocks.append(Grass((chunk_pos_x * 16 + x, chunk_pos_y + z + 1, chunk_pos_z * 16 + z)))
-                blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
+                for y in range(height):
+                    if y == height - 1:
+                        blocks.append(Grass((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
+                        blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
+                    elif y == height - 2:
+                        blocks.append(Dirt((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
+                        blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
+                    else:
+                        blocks.append(Stone((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
+                        blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
+                        
+
         return blocks
 
     def setVerticeIndex(self, index):

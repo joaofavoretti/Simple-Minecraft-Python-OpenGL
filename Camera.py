@@ -9,7 +9,7 @@ WINDOW_HEIGHT = 720
 class Camera:
     def __init__ (self, world):
         
-        self.cameraPos = glm.vec3(0.0, 3.0,  0.0)
+        self.cameraPos = glm.vec3(0.0, 15.0,  0.0)
         self.cameraFront = glm.vec3(0.0, 0.0, -1.0)
         self.cameraUp = glm.vec3(0.0, 1.0,  0.0)
 
@@ -67,6 +67,12 @@ class Camera:
     def moveDown(self, deltaTime):
         self.cameraPos -= self.cameraUp * deltaTime * 0.1
         self.updateView()
+
+    def breakBlock(self):
+        print('break block - Yet to be implemented')
+
+    def placeBlock(self):
+        print('place block - Yet to be implemented')
 
     def processMouseMovement(self, xpos, ypos):
         if self.firstMouse:

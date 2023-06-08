@@ -143,6 +143,23 @@ def mouseHandler(window, xpos, ypos):
 
     camera.processMouseMovement(xpos, ypos)
 
+def mouseButtonHandler(window, button, action, mods):
+    """
+        Handle the mouse button events
+
+        window(glfw._GLFWwindow) - Window
+        button(int) - Button code
+        action(int) - Action code
+        mods(int) - Modifiers
+    """
+
+    global camera
+
+    if button == glfw.MOUSE_BUTTON_LEFT and action == glfw.PRESS:
+        camera.breakBlock()
+    elif button == glfw.MOUSE_BUTTON_RIGHT and action == glfw.PRESS:
+        camera.placeBlock()
+
 def loadTexture(texture_file):
     """
         Load the texture file. Texture is 16x16. Pixelation is intentional
@@ -179,8 +196,8 @@ def main():
     window, program = createWindow(vertex_code, fragment_code)
     glfw.set_key_callback(window, keyHandler)
     glfw.set_cursor_pos_callback(window, mouseHandler)
+    glfw.set_mouse_button_callback(window, mouseButtonHandler)
     glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
-
     loadTexture(TEXTURE_FILE)
 
     glfw.show_window(window)
