@@ -6,22 +6,30 @@ import numpy as np
 from Chunk import Chunk
 
 class World:
-    def __init__(self):
+    def __init__(self, program):
         """
             Initialize the world
         """
 
-        self.chunks = self.defineChunks()
 
-    def defineChunks(self):
+        self.program = program
+
+        self.central_chunk_coord = (0, 0)
+
+        self.chunks = self.defineChunks(self.central_chunk_coord)
+    
+        self.sendVerticesAndTexture(self.program)
+
+    def defineChunks(self, central_chunk_coord):
         """
             Define the chunks of the world
         """
         chunks = []
         last_vertice_index = 0
+        central_chunk_x, central_chunk_z = central_chunk_coord
         for x in range(-1, 1):
             for z in range(-1, 1):
-                c = Chunk((x, z))
+                c = Chunk((central_chunk_x + x, central_chunk_z + z))
                 c.setVerticeIndex(last_vertice_index)
                 last_vertice_index = c.getLastVerticeIndex()
                 chunks.append(c)
@@ -36,15 +44,16 @@ class World:
             texture(numpy.ndarray) - Texture to be sent to the GPU
         """
 
-        # TODO: Testar usar o comando glGenBuffers 2 vezes (Para separar essa funcao em duas)
+        # TODO: Testar usar o comando glGenBuffers 2 vezes (Para separar essa funcao em duas. sendVertices() e sendTexture())
 
-        buffer = glGenBuffers(2)
+        if not hasattr(self, 'buffer'):
+            self.vertice_buffer, self.texture_buffer = glGenBuffers(2)
         
         vertices = self.getVertices()
         texture = self.getTexture()
 
         # Vertices
-        glBindBuffer(GL_ARRAY_BUFFER, buffer[0])
+        glBindBuffer(GL_ARRAY_BUFFER, self.vertice_buffer)
         glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
 
         loc = glGetAttribLocation(program, "position")
@@ -56,7 +65,7 @@ class World:
         glVertexAttribPointer(loc, 3, GL_FLOAT, False, stride, offset)
 
         # Texture
-        glBindBuffer(GL_ARRAY_BUFFER, buffer[1])
+        glBindBuffer(GL_ARRAY_BUFFER, self.texture_buffer)
         glBufferData(GL_ARRAY_BUFFER, texture.nbytes, texture, GL_STATIC_DRAW)
 
         loc = glGetAttribLocation(program, "texture")
@@ -66,6 +75,14 @@ class World:
         offset = ctypes.c_void_p(0)
 
         glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
+
+    def updateChunks(self, new_central_chunk_coord):
+        self.central_chunk_coord = new_central_chunk_coord
+
+        self.chunks = self.defineChunks(self.central_chunk_coord)
+    
+        self.sendVerticesAndTexture(self.program)
+
 
     def getVertices(self):
         """

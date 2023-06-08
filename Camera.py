@@ -9,7 +9,7 @@ WINDOW_HEIGHT = 720
 class Camera:
     def __init__ (self, world):
         
-        self.cameraPos = glm.vec3(0.0, 0.0,  3.0)
+        self.cameraPos = glm.vec3(0.0, 3.0,  0.0)
         self.cameraFront = glm.vec3(0.0, 0.0, -1.0)
         self.cameraUp = glm.vec3(0.0, 1.0,  0.0)
 
@@ -25,14 +25,24 @@ class Camera:
 
         self.world = world
 
+        self.nearest_chunk_coord = self.getNearestChunkCoord(self.cameraPos)
+
     def getView(self):
         return self.view
 
     def getProj(self):
         return self.proj
 
+    def getNearestChunkCoord(self, pos):
+        # TODO: Maybe use euclidean distance from the nearest 4 point ??
+        return (round(pos.x / 16), round(pos.z / 16))
+
     def updateView(self):
         self.view = glm.lookAt(self.cameraPos, self.cameraPos + self.cameraFront, self.cameraUp)
+
+        if (self.getNearestChunkCoord(self.cameraPos) != self.nearest_chunk_coord):
+            self.nearest_chunk_coord = self.getNearestChunkCoord(self.cameraPos)
+            self.world.updateChunks(self.nearest_chunk_coord)
 
     def moveForward(self, deltaTime):
         self.cameraPos += self.cameraFront * deltaTime * 0.1

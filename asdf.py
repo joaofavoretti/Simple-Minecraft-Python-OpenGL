@@ -195,12 +195,9 @@ def main():
 
     # Now that the magic starts
 
-    world = World()
+    world = World(program)
 
     camera = Camera(world)
-
-    # TODO: Passar isso para a classe World
-    world.sendVerticesAndTexture(program)
 
     while not glfw.window_should_close(window):
         glfw.poll_events()
