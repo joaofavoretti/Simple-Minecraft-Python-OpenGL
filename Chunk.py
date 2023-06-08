@@ -46,10 +46,10 @@ class Chunk:
 
                 for y in range(height):
                     if y == height - 1:
-                        blocks.append(Stone((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
+                        blocks.append(Grass((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
                         blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
                     elif y == height - 2:
-                        blocks.append(Stone((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
+                        blocks.append(Dirt((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
                         blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
                     else:
                         blocks.append(Stone((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
