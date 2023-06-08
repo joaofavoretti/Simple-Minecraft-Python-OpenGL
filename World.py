@@ -19,14 +19,54 @@ class World:
         """
         chunks = []
         last_vertice_index = 0
-        for x in range(2):
-            for z in range(2):
+        for x in range(-1, 1):
+            for z in range(-1, 1):
                 c = Chunk((x, z))
                 c.setVerticeIndex(last_vertice_index)
                 last_vertice_index = c.getLastVerticeIndex()
                 chunks.append(c)
         return chunks
     
+    def sendVerticesAndTexture(self, program):
+        """
+            Send the vertices to the GPU
+
+            program(OpenGL.GL.shaders.ShaderProgram) - Shader program
+            vertices(numpy.ndarray) - Vertices to be sent to the GPU
+            texture(numpy.ndarray) - Texture to be sent to the GPU
+        """
+
+        # TODO: Testar usar o comando glGenBuffers 2 vezes (Para separar essa funcao em duas)
+
+        buffer = glGenBuffers(2)
+        
+        vertices = self.getVertices()
+        texture = self.getTexture()
+
+        # Vertices
+        glBindBuffer(GL_ARRAY_BUFFER, buffer[0])
+        glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
+
+        loc = glGetAttribLocation(program, "position")
+        glEnableVertexAttribArray(loc)
+
+        stride = vertices.strides[0]
+        offset = ctypes.c_void_p(0)
+
+        glVertexAttribPointer(loc, 3, GL_FLOAT, False, stride, offset)
+
+        # Texture
+        glBindBuffer(GL_ARRAY_BUFFER, buffer[1])
+        glBufferData(GL_ARRAY_BUFFER, texture.nbytes, texture, GL_STATIC_DRAW)
+
+        loc = glGetAttribLocation(program, "texture")
+        glEnableVertexAttribArray(loc)
+
+        stride = texture.strides[0]
+        offset = ctypes.c_void_p(0)
+
+        glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
+
     def getVertices(self):
         """
             Get the vertices of the world

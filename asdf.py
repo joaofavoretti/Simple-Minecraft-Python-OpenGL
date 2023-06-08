@@ -184,36 +184,29 @@ def main():
     loadTexture(TEXTURE_FILE)
 
     glfw.show_window(window)
-    # glEnable(GL_CULL_FACE)
-    # glCullFace(GL_BACK)
+
+    glEnable(GL_CULL_FACE)
+    glCullFace(GL_BACK)
+
     glEnable(GL_DEPTH_TEST)
     glDepthFunc(GL_LESS)
+
     glClearColor(0.678, 0.847, 0.901, 1.0)
 
     # Now that the magic starts
-    camera = Camera()
 
     world = World()
 
-    vertices = world.getVertices()
-    texture = world.getTexture()
+    camera = Camera(world)
 
-    sendVerticesAndTexture(program, vertices, texture)
+    # TODO: Passar isso para a classe World
+    world.sendVerticesAndTexture(program)
 
-    t = 0
-
-    print('Camera coords')
     while not glfw.window_should_close(window):
-        if t == 60:
-            print(f'{np.round(camera.cameraPos)}           ', end='\r')
-            t = 0
-        
-        t += 1
-
         glfw.poll_events()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
+        # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
         world.draw(program, camera)
 

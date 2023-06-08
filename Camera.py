@@ -7,7 +7,7 @@ WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
 
 class Camera:
-    def __init__ (self):
+    def __init__ (self, world):
         
         self.cameraPos = glm.vec3(0.0, 0.0,  3.0)
         self.cameraFront = glm.vec3(0.0, 0.0, -1.0)
@@ -22,6 +22,8 @@ class Camera:
 
         self.view = glm.lookAt(self.cameraPos, self.cameraPos + self.cameraFront, self.cameraUp)
         self.proj = glm.perspective(glm.radians(45), WINDOW_WIDTH/WINDOW_HEIGHT, 0.1, 100.0)
+
+        self.world = world
 
     def getView(self):
         return self.view

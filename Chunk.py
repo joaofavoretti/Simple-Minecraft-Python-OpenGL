@@ -5,6 +5,8 @@ import numpy as np
 
 from Block import Block
 from Grass import Grass
+from Dirt import Dirt
+from Stone import Stone
 
 VERTICES_PER_BLOCK = 24
 
@@ -36,7 +38,7 @@ class Chunk:
         for y in range(self.y_length):
             for x in range(self.x_length):
                 for z in range(self.z_length):
-                    blocks.append(Grass((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
+                    blocks.append(Stone((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
                     blocks[-1].setVerticeIndex(y * self.x_length * self.z_length + x * self.z_length + z)
         return blocks
 
