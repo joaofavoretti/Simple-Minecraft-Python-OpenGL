@@ -31,15 +31,19 @@ class Chunk:
 
     def defineBlocks(self):
         """
-            Define the blocks of the chunk
+            World generation function
         """
         blocks = []
+
         chunk_pos_x, chunk_pos_y, chunk_pos_z = self.pos
-        for y in range(self.y_length):
-            for x in range(self.x_length):
-                for z in range(self.z_length):
-                    blocks.append(Stone((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
-                    blocks[-1].setVerticeIndex(y * self.x_length * self.z_length + x * self.z_length + z)
+
+        for x in range(self.x_length):
+            for z in range(self.z_length):
+                blocks.append(Dirt((chunk_pos_x * 16 + x, chunk_pos_y + z, chunk_pos_z * 16 + z)))
+                blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
+
+                blocks.append(Grass((chunk_pos_x * 16 + x, chunk_pos_y + z + 1, chunk_pos_z * 16 + z)))
+                blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
         return blocks
 
     def setVerticeIndex(self, index):
@@ -58,6 +62,21 @@ class Chunk:
         """
 
         return self.chunk_vertice_index + len(self.blocks)
+
+    def getPosition(self):
+        """
+            Get the position of the chunk
+        """
+
+        return (self.pos[0], self.pos[2])
+
+    def isNear(self, central_coord):
+        """
+            Check if the chunk is near the central chunk
+        """
+        central_chunk_x, central_chunk_z = central_coord
+        chunk_x, chunk_z = self.pos[0], self.pos[2]
+        return abs(central_chunk_x - chunk_x) <= 1 and abs(central_chunk_z - chunk_z) <= 1
 
     def getVertices(self):
         """

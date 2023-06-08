@@ -76,10 +76,42 @@ class World:
 
         glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
 
+    def reDefineChunks(self, central_chunk_coord):
+        """
+            Re-define the chunks of the world using the near chunks that are already defined
+        """
+        new_chunks = []
+        last_vertice_index = 0
+        for chunk in self.chunks:
+            if chunk.isNear(central_chunk_coord):
+                new_chunks.append(chunk)
+                chunk.setVerticeIndex(last_vertice_index)
+                last_vertice_index = chunk.getLastVerticeIndex()
+        
+        central_chunk_x, central_chunk_z = central_chunk_coord
+        for x in range(-1, 1):
+            for z in range(-1, 1):
+                if not self.isChunkDefined(new_chunks, (central_chunk_x + x, central_chunk_z + z)):
+                    c = Chunk((central_chunk_x + x, central_chunk_z + z))
+                    c.setVerticeIndex(last_vertice_index)
+                    last_vertice_index = c.getLastVerticeIndex()
+                    new_chunks.append(c)
+
+        return new_chunks
+
+    def isChunkDefined(self, chunks, chunk_coord):
+        """
+            Check if the chunk is already defined
+        """
+        for chunk in chunks:
+            if chunk.getPosition() == chunk_coord:
+                return True
+        return False
+
     def updateChunks(self, new_central_chunk_coord):
         self.central_chunk_coord = new_central_chunk_coord
 
-        self.chunks = self.defineChunks(self.central_chunk_coord)
+        self.chunks = self.reDefineChunks(self.central_chunk_coord)
     
         self.sendVerticesAndTexture(self.program)
 
