@@ -16,7 +16,7 @@ class World:
 
         self.central_chunk_coord = (0, 0)
 
-        self.chunks = self.defineChunks(self.central_chunk_coord)
+        self.chunks, self.last_vertice_index = self.defineChunks(self.central_chunk_coord)
     
         self.sendVerticesAndTexture(self.program)
 
@@ -27,13 +27,14 @@ class World:
         chunks = []
         last_vertice_index = 0
         central_chunk_x, central_chunk_z = central_chunk_coord
-        for x in range(-1, 1):
-            for z in range(-1, 1):
+        for x in range(-2, 2):
+            for z in range(-2, 2):
                 c = Chunk((central_chunk_x + x, central_chunk_z + z))
                 c.setVerticeIndex(last_vertice_index)
                 last_vertice_index = c.getLastVerticeIndex()
                 chunks.append(c)
-        return chunks
+        
+        return chunks, last_vertice_index
     
     def sendVerticesAndTexture(self, program):
         """
@@ -89,15 +90,15 @@ class World:
                 last_vertice_index = chunk.getLastVerticeIndex()
         
         central_chunk_x, central_chunk_z = central_chunk_coord
-        for x in range(-1, 1):
-            for z in range(-1, 1):
+        for x in range(-2, 2):
+            for z in range(-2, 2):
                 if not self.isChunkDefined(new_chunks, (central_chunk_x + x, central_chunk_z + z)):
                     c = Chunk((central_chunk_x + x, central_chunk_z + z))
                     c.setVerticeIndex(last_vertice_index)
                     last_vertice_index = c.getLastVerticeIndex()
                     new_chunks.append(c)
 
-        return new_chunks
+        return new_chunks, last_vertice_index
 
     def isChunkDefined(self, chunks, chunk_coord):
         """
@@ -111,7 +112,7 @@ class World:
     def updateChunks(self, new_central_chunk_coord):
         self.central_chunk_coord = new_central_chunk_coord
 
-        self.chunks = self.reDefineChunks(self.central_chunk_coord)
+        self.chunks, self.last_vertice_index = self.reDefineChunks(self.central_chunk_coord)
     
         self.sendVerticesAndTexture(self.program)
 
@@ -136,8 +137,28 @@ class World:
     
     def draw(self, program, camera):
         """
-            Draw the world
+            Draw the world.
+
+            Draw all the vertices at once to avoid multiple calls to the GPU.
+            Optimization over readability.
         """
-        for chunk in self.chunks:
-            chunk.draw(program, camera)
+        # Version 1
+        # for chunk in self.chunks:
+        #     chunk.draw(program, camera)
+
+        # Version 2 - Incomplete
+        loc_model = glGetUniformLocation(program, "model")
+        model_array = np.array(glm.mat4(1.0), dtype=np.float32)
+        glUniformMatrix4fv(loc_model, 1, GL_TRUE, model_array)
+
+        loc_view = glGetUniformLocation(program, "view")
+        view_array = np.array(camera.view, dtype=np.float32)
+        glUniformMatrix4fv(loc_view, 1, GL_TRUE, view_array)
+
+        loc_projection = glGetUniformLocation(program, "projection")
+        projection_array = np.array(camera.proj, dtype=np.float32)
+        glUniformMatrix4fv(loc_projection, 1, GL_TRUE, projection_array)
+
+        glDrawArrays(GL_TRIANGLES, 0, self.last_vertice_index * 36)
+
 

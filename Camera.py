@@ -45,11 +45,19 @@ class Camera:
             self.world.updateChunks(self.nearest_chunk_coord)
 
     def moveForward(self, deltaTime):
-        self.cameraPos += self.cameraFront * deltaTime * 0.1
+        # Andar na direcao de cameraFront, mas sem alterar a altura
+        self.cameraPos += glm.normalize(glm.vec3(self.cameraFront.x, 0.0, self.cameraFront.z)) * deltaTime * 0.1
+        
+        # Andar em direcao a camera
+        # self.cameraPos += self.cameraFront * deltaTime * 0.1
         self.updateView()
 
     def moveBackward(self, deltaTime):
-        self.cameraPos -= self.cameraFront * deltaTime * 0.1
+        # Andar na direcao oposta a cameraFront, mas sem alterar a altura
+        self.cameraPos -= glm.normalize(glm.vec3(self.cameraFront.x, 0.0, self.cameraFront.z)) * deltaTime * 0.1
+
+        # Andar em direcao oposta a camera
+        # self.cameraPos -= self.cameraFront * deltaTime * 0.1
         self.updateView()
 
     def moveLeft(self, deltaTime):

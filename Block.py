@@ -40,38 +40,53 @@ class Block:
             pos(tuple(float, float, float)) - Position of the block in the world
             size(float) - Size of the block
         """
+        # Define the vertices of a block using 6 vertices per face
         return np.array([
 
             (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
             (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
+            (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
+            (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
 
             (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2),
             (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
+            (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
+            (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
 
             (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
+            (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
+            (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
 
             (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
+            (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
+            (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
 
             (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
+            (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
+            (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2),
 
             (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
+            (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
+            (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2)
         ], dtype=np.float32)
+        
+            
 
     def defineTexture(self, texture_indices):
         """
@@ -80,35 +95,48 @@ class Block:
 
         size = 0.0625
 
+        # Define the texture of a block using 6 vertices per face
         return np.array([
             (texture_indices["front"][0] * size, texture_indices["front"][1] * size),
             (texture_indices["front"][0] * size + size, texture_indices["front"][1] * size),
             (texture_indices["front"][0] * size, texture_indices["front"][1] * size + size),
+            (texture_indices["front"][0] * size, texture_indices["front"][1] * size + size),
+            (texture_indices["front"][0] * size + size, texture_indices["front"][1] * size),
             (texture_indices["front"][0] * size + size, texture_indices["front"][1] * size + size),
 
             (texture_indices["left"][0] * size, texture_indices["left"][1] * size),
             (texture_indices["left"][0] * size + size, texture_indices["left"][1] * size),
             (texture_indices["left"][0] * size, texture_indices["left"][1] * size + size),
+            (texture_indices["left"][0] * size, texture_indices["left"][1] * size + size),
+            (texture_indices["left"][0] * size + size, texture_indices["left"][1] * size),
             (texture_indices["left"][0] * size + size, texture_indices["left"][1] * size + size),
             
             (texture_indices["back"][0] * size, texture_indices["back"][1] * size),
             (texture_indices["back"][0] * size + size, texture_indices["back"][1] * size),
             (texture_indices["back"][0] * size, texture_indices["back"][1] * size + size),
+            (texture_indices["back"][0] * size, texture_indices["back"][1] * size + size),
+            (texture_indices["back"][0] * size + size, texture_indices["back"][1] * size),
             (texture_indices["back"][0] * size + size, texture_indices["back"][1] * size + size),
 
             (texture_indices["right"][0] * size, texture_indices["right"][1] * size),
             (texture_indices["right"][0] * size + size, texture_indices["right"][1] * size),
             (texture_indices["right"][0] * size, texture_indices["right"][1] * size + size),
+            (texture_indices["right"][0] * size, texture_indices["right"][1] * size + size),
+            (texture_indices["right"][0] * size + size, texture_indices["right"][1] * size),
             (texture_indices["right"][0] * size + size, texture_indices["right"][1] * size + size),
             
             (texture_indices["bottom"][0] * size, texture_indices["bottom"][1] * size),
             (texture_indices["bottom"][0] * size + size, texture_indices["bottom"][1] * size),
             (texture_indices["bottom"][0] * size, texture_indices["bottom"][1] * size + size),
+            (texture_indices["bottom"][0] * size, texture_indices["bottom"][1] * size + size),
+            (texture_indices["bottom"][0] * size + size, texture_indices["bottom"][1] * size),
             (texture_indices["bottom"][0] * size + size, texture_indices["bottom"][1] * size + size),
             
             (texture_indices["top"][0] * size, texture_indices["top"][1] * size),
             (texture_indices["top"][0] * size + size, texture_indices["top"][1] * size),
             (texture_indices["top"][0] * size, texture_indices["top"][1] * size + size),
+            (texture_indices["top"][0] * size, texture_indices["top"][1] * size + size),
+            (texture_indices["top"][0] * size + size, texture_indices["top"][1] * size),
             (texture_indices["top"][0] * size + size, texture_indices["top"][1] * size + size)
         ], dtype=np.float32)
 
@@ -148,5 +176,5 @@ class Block:
         glUniformMatrix4fv(loc_projection, 1, GL_TRUE, projection_array)
 
         for face in range(6):
-            glDrawArrays(GL_TRIANGLE_STRIP, self.block_index * 24 + face * 4, 4)
+            glDrawArrays(GL_TRIANGLES, self.block_index * 36 + face * 6, 6)
             
