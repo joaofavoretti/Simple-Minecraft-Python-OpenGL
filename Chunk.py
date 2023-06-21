@@ -106,7 +106,17 @@ class Chunk:
         for block in self.blocks.values():
             texture = np.vstack((texture, block.getTexture()))
         return texture
-    
+ 
+    def getNormals(self):
+        """
+            Get the normals of the chunk
+        """
+        normals = np.empty((0, 3), dtype=np.float32)
+        for block in self.blocks.values():
+            normals = np.vstack((normals, block.getNormals()))
+        return normals
+ 
+
     def draw(self, program, camera):
         """
             Draw the chunk

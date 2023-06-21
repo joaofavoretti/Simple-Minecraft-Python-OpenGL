@@ -161,6 +161,15 @@ def main():
     glfw.set_mouse_button_callback(window, mouseButtonHandler)
     glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
     loadTexture(TEXTURE_FILE)
+    
+    loc_light_dir = glGetUniformLocation(program, "lightDir")
+    glUniform3f(loc_light_dir, 1.0, 1.0, 1.0)
+    
+    loc_ka = glGetUniformLocation(program, "ka")
+    glUniform1f(loc_ka, 0.8)
+
+    loc_kd = glGetUniformLocation(program, "kd")
+    glUniform1f(loc_kd, 0.9)
 
     glfw.show_window(window)
 

@@ -29,7 +29,7 @@ class Block:
         self.vertices = self.defineVertices(pos, self.size)
 
         self.texture = self.defineTexture(self.texture_indices)
-            
+        self.normals = self.defineNormals()
         self.model = glm.mat4(1.0)
 
     # TODO: Use a block.obj file to define the vertices
@@ -144,6 +144,54 @@ class Block:
             (texture_indices["top"][0] * size + size, texture_indices["top"][1] * size + size)
         ], dtype=np.float32)
 
+    def defineNormals(self):
+        """
+            Defines the normals of the block
+        """
+        return np.array([
+            (0.0, 0.0, 1.0),
+            (0.0, 0.0, 1.0),
+            (0.0, 0.0, 1.0),
+            (0.0, 0.0, 1.0),
+            (0.0, 0.0, 1.0),
+            (0.0, 0.0, 1.0),
+
+            (1.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+            (1.0, 0.0, 0.0),
+
+            (0.0, 0.0, -1.0),
+            (0.0, 0.0, -1.0),
+            (0.0, 0.0, -1.0),
+            (0.0, 0.0, -1.0),
+            (0.0, 0.0, -1.0),
+            (0.0, 0.0, -1.0),
+
+            (-1.0, 0.0, 0.0),
+            (-1.0, 0.0, 0.0),
+            (-1.0, 0.0, 0.0),
+            (-1.0, 0.0, 0.0),
+            (-1.0, 0.0, 0.0),
+            (-1.0, 0.0, 0.0),
+
+            (0.0, -1.0, 0.0),
+            (0.0, -1.0, 0.0),
+            (0.0, -1.0, 0.0),
+            (0.0, -1.0, 0.0),
+            (0.0, -1.0, 0.0),
+            (0.0, -1.0, 0.0),
+
+            (0.0, 1.0, 0.0),
+            (0.0, 1.0, 0.0),
+            (0.0, 1.0, 0.0),
+            (0.0, 1.0, 0.0),
+            (0.0, 1.0, 0.0),
+            (0.0, 1.0, 0.0)
+        ], dtype=np.float32)
+
     def setVerticeIndex(self, index):
         """
             Set the block index
@@ -164,6 +212,13 @@ class Block:
         """
         
         return self.texture
+
+    def getNormals(self):
+        """
+            Return the normals of the block
+        """
+
+        return self.normals
 
     def draw(self, program, view, proj):
         

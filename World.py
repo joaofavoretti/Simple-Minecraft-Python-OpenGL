@@ -54,11 +54,12 @@ class World:
         # TODO: Testar usar o comando glGenBuffers 2 vezes (Para separar essa funcao em duas. sendVertices() e sendTexture())
 
         if not hasattr(self, 'vertice_buffer'):
-            self.vertice_buffer, self.texture_buffer = glGenBuffers(2)
+            self.vertice_buffer, self.texture_buffer, self.normal_buffer = glGenBuffers(3)
         
 
         vertices = self.getVertices()
         texture = self.getTexture()
+        normals = self.getNormals()
 
         self.vertices_semaphore.acquire()
         
@@ -89,6 +90,20 @@ class World:
         offset = ctypes.c_void_p(0)
 
         glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
+        
+        # Normals
+        print("OI")
+        glBindBuffer(GL_ARRAY_BUFFER, self.normal_buffer)
+        glBufferData(GL_ARRAY_BUFFER, normals.nbytes, normals, GL_STATIC_DRAW)
+
+        loc = glGetAttribLocation(program, "normal")
+        glEnableVertexAttribArray(loc)
+
+        stride = vertices.strides[0]
+        offset = ctypes.c_void_p(0)
+
+        glVertexAttribPointer(loc, 3, GL_FLOAT, False, stride, offset)
+
 
         self.vertices_semaphore.release()
 
@@ -132,7 +147,6 @@ class World:
     
         self.sendVerticesAndTexture(self.program)
 
-
     def getVertices(self):
         """
             Get the vertices of the world
@@ -150,7 +164,16 @@ class World:
         for chunk in self.chunks:
             texture = np.vstack((texture, chunk.getTexture()))
         return texture
-    
+
+    def getNormals(self):
+        """
+            Get the normalss of the world
+        """
+        normals = np.empty((0, 3), dtype=np.float32)
+        for chunk in self.chunks:
+            normals = np.vstack((normals, chunk.getNormals()))
+        return normals
+
     def draw(self, program, camera):
         """
             Draw the world.
