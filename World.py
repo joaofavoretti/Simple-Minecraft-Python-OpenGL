@@ -2,22 +2,28 @@ import glfw
 import glm
 from OpenGL.GL import *
 import numpy as np
+import threading
 
 from Chunk import Chunk
 
 class World:
-    def __init__(self, program):
+    def __init__(self, program, window):
         """
             Initialize the world
         """
 
 
+        self.vertices_semaphore = threading.Semaphore()
+        
+        self.window = window
+
         self.program = program
 
         self.central_chunk_coord = (0, 0)
 
-        self.chunks, self.last_vertice_index = self.defineChunks(self.central_chunk_coord)
-    
+        self.chunks, self.temp_last_vertice_index = self.defineChunks(self.central_chunk_coord)
+        self.last_vertice_index = self.temp_last_vertice_index
+
         self.sendVerticesAndTexture(self.program)
 
     def defineChunks(self, central_chunk_coord):
@@ -27,8 +33,8 @@ class World:
         chunks = []
         last_vertice_index = 0
         central_chunk_x, central_chunk_z = central_chunk_coord
-        for x in range(-2, 2):
-            for z in range(-2, 2):
+        for x in range(-5, 5):
+            for z in range(-5, 5):
                 c = Chunk((central_chunk_x + x, central_chunk_z + z))
                 c.setVerticeIndex(last_vertice_index)
                 last_vertice_index = c.getLastVerticeIndex()
@@ -47,11 +53,18 @@ class World:
 
         # TODO: Testar usar o comando glGenBuffers 2 vezes (Para separar essa funcao em duas. sendVertices() e sendTexture())
 
-        if not hasattr(self, 'buffer'):
+        if not hasattr(self, 'vertice_buffer'):
             self.vertice_buffer, self.texture_buffer = glGenBuffers(2)
         
+
         vertices = self.getVertices()
         texture = self.getTexture()
+
+        self.vertices_semaphore.acquire()
+        
+        glfw.make_context_current(self.window)
+        
+        self.last_vertice_index = self.temp_last_vertice_index
 
         # Vertices
         glBindBuffer(GL_ARRAY_BUFFER, self.vertice_buffer)
@@ -77,6 +90,8 @@ class World:
 
         glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
 
+        self.vertices_semaphore.release()
+
     def reDefineChunks(self, central_chunk_coord):
         """
             Re-define the chunks of the world using the near chunks that are already defined
@@ -90,8 +105,8 @@ class World:
                 last_vertice_index = chunk.getLastVerticeIndex()
         
         central_chunk_x, central_chunk_z = central_chunk_coord
-        for x in range(-2, 2):
-            for z in range(-2, 2):
+        for x in range(-5, 5):
+            for z in range(-5, 5):
                 if not self.isChunkDefined(new_chunks, (central_chunk_x + x, central_chunk_z + z)):
                     c = Chunk((central_chunk_x + x, central_chunk_z + z))
                     c.setVerticeIndex(last_vertice_index)
@@ -110,9 +125,10 @@ class World:
         return False
 
     def updateChunks(self, new_central_chunk_coord):
+        
         self.central_chunk_coord = new_central_chunk_coord
 
-        self.chunks, self.last_vertice_index = self.reDefineChunks(self.central_chunk_coord)
+        self.chunks, self.temp_last_vertice_index = self.reDefineChunks(self.central_chunk_coord)
     
         self.sendVerticesAndTexture(self.program)
 
@@ -147,6 +163,7 @@ class World:
         #     chunk.draw(program, camera)
 
         # Version 2 - Incomplete
+
         loc_model = glGetUniformLocation(program, "model")
         model_array = np.array(glm.mat4(1.0), dtype=np.float32)
         glUniformMatrix4fv(loc_model, 1, GL_TRUE, model_array)
@@ -158,7 +175,5 @@ class World:
         loc_projection = glGetUniformLocation(program, "projection")
         projection_array = np.array(camera.proj, dtype=np.float32)
         glUniformMatrix4fv(loc_projection, 1, GL_TRUE, projection_array)
-
+    
         glDrawArrays(GL_TRIANGLES, 0, self.last_vertice_index * 36)
-
-

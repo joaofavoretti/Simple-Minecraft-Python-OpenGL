@@ -16,8 +16,8 @@ FRAGMENT_SHADER_FNAME = './shaders/fragment.glsl'
 
 TEXTURE_FILE = './assets/texture_atlas.png'
 
-WINDOW_WIDTH = 1280
-WINDOW_HEIGHT = 720
+WINDOW_WIDTH = 1920
+WINDOW_HEIGHT = 1080
 
 def applyShaders(vert_code, frag_code):
     """
@@ -55,50 +55,12 @@ def createWindow(vert_code, frag_code):
 
     glfw.init()
     glfw.window_hint(glfw.VISIBLE, glfw.FALSE)
-    window = glfw.create_window(WINDOW_WIDTH, WINDOW_HEIGHT, "Cubo", None, None)
+    window = glfw.create_window(WINDOW_WIDTH, WINDOW_HEIGHT, "Cubo", glfw.get_primary_monitor(), None)
     glfw.make_context_current(window)
 
     program = applyShaders(vert_code, frag_code)
 
     return window, program
-
-def sendVerticesAndTexture(program, vertices, texture):
-    """
-        Send the vertices to the GPU
-
-        program(OpenGL.GL.shaders.ShaderProgram) - Shader program
-        vertices(numpy.ndarray) - Vertices to be sent to the GPU
-        texture(numpy.ndarray) - Texture to be sent to the GPU
-    """
-
-    # TODO: Testar usar o comando glGenBuffers 2 vezes (Para separar essa funcao em duas)
-
-    buffer = glGenBuffers(2)
-    
-    # Vertices
-    glBindBuffer(GL_ARRAY_BUFFER, buffer[0])
-    glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
-
-    loc = glGetAttribLocation(program, "position")
-    glEnableVertexAttribArray(loc)
-
-    stride = vertices.strides[0]
-    offset = ctypes.c_void_p(0)
-
-    glVertexAttribPointer(loc, 3, GL_FLOAT, False, stride, offset)
-
-    # Texture
-    glBindBuffer(GL_ARRAY_BUFFER, buffer[1])
-    glBufferData(GL_ARRAY_BUFFER, texture.nbytes, texture, GL_STATIC_DRAW)
-
-    loc = glGetAttribLocation(program, "texture")
-    glEnableVertexAttribArray(loc)
-
-    stride = texture.strides[0]
-    offset = ctypes.c_void_p(0)
-
-    glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
-
 
 def keyHandler(window, key, scancode, action, mods):
     """
@@ -212,19 +174,21 @@ def main():
 
     # Now that the magic starts
 
-    world = World(program)
+    world = World(program, window)
 
     camera = Camera(world)
 
     while not glfw.window_should_close(window):
         glfw.poll_events()
+
+        world.vertices_semaphore.acquire()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
-
+        
         world.draw(program, camera)
-
         glfw.swap_buffers(window)
+        world.vertices_semaphore.release()
 
     glfw.terminate()
 

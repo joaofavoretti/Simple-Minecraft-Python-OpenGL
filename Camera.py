@@ -2,6 +2,7 @@ import glfw
 import glm
 from OpenGL.GL import *
 import numpy as np
+import threading
 
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
@@ -24,6 +25,7 @@ class Camera:
         self.proj = glm.perspective(glm.radians(45), WINDOW_WIDTH/WINDOW_HEIGHT, 0.1, 100.0)
 
         self.world = world
+        self.updatingChunks = False
 
         self.nearest_chunk_coord = self.getNearestChunkCoord(self.cameraPos)
 
@@ -40,9 +42,17 @@ class Camera:
     def updateView(self):
         self.view = glm.lookAt(self.cameraPos, self.cameraPos + self.cameraFront, self.cameraUp)
 
-        if (self.getNearestChunkCoord(self.cameraPos) != self.nearest_chunk_coord):
+        if (self.getNearestChunkCoord(self.cameraPos) != self.nearest_chunk_coord and not self.updatingChunks):
             self.nearest_chunk_coord = self.getNearestChunkCoord(self.cameraPos)
-            self.world.updateChunks(self.nearest_chunk_coord)
+            #self.world.updateChunks(self.nearest_chunk_coord)
+            self.updatingChunks = True
+            update_chunks_thread = threading.Thread(target = self.parallelUpdate)
+            update_chunks_thread.start()
+
+    def parallelUpdate(self):
+        print(self.nearest_chunk_coord)
+        self.world.updateChunks(self.nearest_chunk_coord)
+        self.updatingChunks = False
 
     def moveForward(self, deltaTime):
         # Andar na direcao de cameraFront, mas sem alterar a altura

@@ -36,7 +36,7 @@ class Chunk:
         """
             World generation function
         """
-        blocks = []
+        blocks = {}
 
         chunk_pos_x, chunk_pos_y, chunk_pos_z = self.pos
 
@@ -46,15 +46,14 @@ class Chunk:
 
                 for y in range(height):
                     if y == height - 1:
-                        blocks.append(Grass((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
-                        blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
+                        blocks[(x,y,z)] = Grass((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z))
+                        blocks[(x,y,z)].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
                     elif y == height - 2:
-                        blocks.append(Dirt((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
-                        blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
+                        blocks[(x,y,z)] = Dirt((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z))
+                        blocks[(x,y,z)].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
                     else:
-                        blocks.append(Stone((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
-                        blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
-                        
+                        blocks[(x,y,z)] = Stone((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z))
+                        blocks[(x,y,z)].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
 
         return blocks
 
@@ -65,7 +64,7 @@ class Chunk:
         self.chunk_vertice_index = index
 
         # Update block vertice index
-        for i, block in enumerate(self.blocks):
+        for i, block in enumerate(self.blocks.values()):
             block.setVerticeIndex(self.chunk_vertice_index + i)
 
     def getLastVerticeIndex(self):
@@ -95,7 +94,7 @@ class Chunk:
             Get the vertices of the chunk
         """
         vertices = np.empty((0, 3), dtype=np.float32)
-        for block in self.blocks:
+        for block in self.blocks.values():
             vertices = np.vstack((vertices, block.getVertices()))
         return vertices
     
@@ -104,7 +103,7 @@ class Chunk:
             Get the texture of the chunk
         """
         texture = np.empty((0, 2), dtype=np.float32)
-        for block in self.blocks:
+        for block in self.blocks.values():
             texture = np.vstack((texture, block.getTexture()))
         return texture
     
@@ -112,5 +111,5 @@ class Chunk:
         """
             Draw the chunk
         """
-        for block in self.blocks:
+        for block in self.blocks.values():
             block.draw(program, camera.view, camera.proj)

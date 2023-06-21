@@ -25,11 +25,11 @@ class Block:
                 "front": (0, 2),
                 "back": (0, 2),
             }
-        
+            
         self.vertices = self.defineVertices(pos, self.size)
 
         self.texture = self.defineTexture(self.texture_indices)
-
+            
         self.model = glm.mat4(1.0)
 
     # TODO: Use a block.obj file to define the vertices
@@ -40,53 +40,57 @@ class Block:
             pos(tuple(float, float, float)) - Position of the block in the world
             size(float) - Size of the block
         """
+            
+        array_vertices = []
+            
+
         # Define the vertices of a block using 6 vertices per face
         return np.array([
 
-            (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
+            (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2), # positive z face
             (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
             (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
 
-            (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2),
+            (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2), # positive x face
             (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
             (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
 
-            (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
+            (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2), # negative z face
             (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
             (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
 
-            (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2),
+            (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2), # negative x face
             (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
             (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
 
-            (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2),
+            (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2), # negative y face
             (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
             (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
             (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2),
 
-            (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
+            (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2), # positive y face
             (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2)
         ], dtype=np.float32)
-        
             
+                
 
     def defineTexture(self, texture_indices):
         """
