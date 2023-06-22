@@ -41,7 +41,9 @@ def applyShaders(vert_code, frag_code):
     glAttachShader(program, fragment)
 
     glLinkProgram(program)
+    print("LINKOU")
     glUseProgram(program)
+    print("USOU")
 
     return program
 
@@ -166,10 +168,17 @@ def main():
     glUniform3f(loc_light_dir, 1.0, 1.0, 1.0)
     
     loc_ka = glGetUniformLocation(program, "ka")
-    glUniform1f(loc_ka, 0.8)
+    glUniform1f(loc_ka, 0.7)
+
 
     loc_kd = glGetUniformLocation(program, "kd")
-    glUniform1f(loc_kd, 0.9)
+    glUniform1f(loc_kd, 0.3)
+    
+    loc_ks = glGetUniformLocation(program, "ks")
+    glUniform1f(loc_ks, 0.2)
+    
+    loc_ns = glGetUniformLocation(program, "ns")
+    glUniform1f(loc_ns, 3.0)
 
     glfw.show_window(window)
 
@@ -191,6 +200,8 @@ def main():
         glfw.poll_events()
 
         world.vertices_semaphore.acquire()
+        loc_viewPos = glGetUniformLocation(program, "viewPos")
+        glUniform3f(loc_viewPos, camera.cameraPos[0], camera.cameraPos[1], camera.cameraPos[2])
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)

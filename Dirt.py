@@ -11,10 +11,10 @@ class Dirt (Block):
         self.texture_indices = {
             "top": (1, 0),
             "bottom": (1, 0),
-            "left": (1, 1),
-            "right": (1, 1),
-            "front": (1, 2),
-            "back": (1, 2),
+            "left": (1, 0),
+            "right": (1, 0),
+            "front": (1, 0),
+            "back": (1, 0),
         }
         
         super().__init__(pos)

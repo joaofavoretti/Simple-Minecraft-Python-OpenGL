@@ -8,6 +8,8 @@ from Block import Block
 from Grass import Grass
 from Dirt import Dirt
 from Stone import Stone
+from Leaves import Leaves
+from Wood import Wood
 
 VERTICES_PER_BLOCK = 24
 
@@ -55,6 +57,23 @@ class Chunk:
                         blocks[(x,y,z)] = Stone((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z))
                         blocks[(x,y,z)].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
 
+                
+                if x == 0 and z == 0:
+                    print("ZERO NO CHUNK", chunk_pos_x, chunk_pos_z)
+                    for h in range(3):
+                        blocks[(x,height + h,z)] = Wood((chunk_pos_x * 16, chunk_pos_y + height + h, chunk_pos_z * 16))
+                        blocks[(x,height + h,z)].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
+                    
+                    for i in range(-1,2):
+                        for j in range(-1,2):
+                            blocks[(i, height + 3, j)] = Leaves((chunk_pos_x * 16 + i, chunk_pos_y + height + 3, chunk_pos_z * 16 + j))
+                            
+                            if i == 0 or j == 0:
+                                blocks[(i, height + 4, j)] = Leaves((chunk_pos_x * 16 + i, chunk_pos_y + height + 4, chunk_pos_z * 16 + j))
+                        
+                            if i == 0 and j == 0:
+                                blocks[(i, height + 5, j)] = Leaves((chunk_pos_x * 16 + i, chunk_pos_y + height + 5, chunk_pos_z * 16 + j))
+
         return blocks
 
     def setVerticeIndex(self, index):
@@ -93,7 +112,7 @@ class Chunk:
         """
             Get the vertices of the chunk
         """
-        vertices = np.empty((0, 3), dtype=np.float32)
+        vertices = np.empty((0, 3), dtype=np.float16)
         for block in self.blocks.values():
             vertices = np.vstack((vertices, block.getVertices()))
         return vertices
@@ -102,7 +121,7 @@ class Chunk:
         """
             Get the texture of the chunk
         """
-        texture = np.empty((0, 2), dtype=np.float32)
+        texture = np.empty((0, 2), dtype=np.float16)
         for block in self.blocks.values():
             texture = np.vstack((texture, block.getTexture()))
         return texture
@@ -111,7 +130,7 @@ class Chunk:
         """
             Get the normals of the chunk
         """
-        normals = np.empty((0, 3), dtype=np.float32)
+        normals = np.empty((0, 3), dtype=np.float16)
         for block in self.blocks.values():
             normals = np.vstack((normals, block.getNormals()))
         return normals

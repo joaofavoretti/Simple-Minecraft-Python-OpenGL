@@ -4,17 +4,17 @@ from OpenGL.GL import *
 import numpy as np
 from Block import Block
 
-class Stone (Block):
+class Wood (Block):
     
     def __init__(self, pos):
 
         self.texture_indices = {
-            "top": (4, 0),
-            "bottom": (4, 0),
-            "left": (4, 0),
-            "right": (4, 0),
-            "front": (4, 0),
-            "back": (4, 0),
+            "top": (6, 0),
+            "bottom": (6, 0),
+            "left": (6, 0),
+            "right": (6, 0),
+            "front": (6, 0),
+            "back": (6, 0),
         }
         
         super().__init__(pos)
