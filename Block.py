@@ -10,8 +10,8 @@ class Block:
 
             pos(glm.vec3) - Position of the block in the space. Must be integers, otherwise can cause interpolation problems.
         """
-
-        self.size = 1.0
+        if not hasattr(self, 'size'):
+            self.size = 1.0
 
         self.block_index = 0
 

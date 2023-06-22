@@ -182,8 +182,8 @@ def main():
 
     glfw.show_window(window)
 
-    glEnable(GL_CULL_FACE)
-    glCullFace(GL_BACK)
+    #glEnable(GL_CULL_FACE)
+    #glCullFace(GL_BACK)
 
     glEnable(GL_DEPTH_TEST)
     glDepthFunc(GL_LESS)

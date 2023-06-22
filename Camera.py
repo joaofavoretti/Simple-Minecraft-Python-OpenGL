@@ -22,7 +22,7 @@ class Camera:
         self.fov = 45.0
 
         self.view = glm.lookAt(self.cameraPos, self.cameraPos + self.cameraFront, self.cameraUp)
-        self.proj = glm.perspective(glm.radians(45), WINDOW_WIDTH/WINDOW_HEIGHT, 0.1, 100.0)
+        self.proj = glm.perspective(glm.radians(45), WINDOW_WIDTH/WINDOW_HEIGHT, 0.1, 200.0)
 
         self.world = world
         self.updatingChunks = False

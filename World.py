@@ -5,6 +5,8 @@ import numpy as np
 import threading
 
 from Chunk import Chunk
+from Moon import Moon
+from Sky import Sky
 
 class World:
     def __init__(self, program, window):
@@ -23,6 +25,11 @@ class World:
 
         self.chunks, self.temp_last_vertice_index = self.defineChunks(self.central_chunk_coord)
         self.last_vertice_index = self.temp_last_vertice_index
+
+        self.sky = Sky((0, 10, 0))
+        self.moon = Moon((0, 90, 0))
+        self.last_vertice_index+=2
+        self.temp_last_vertice_index+=2
 
         self.sendVerticesAndTexture(self.program)
 
@@ -144,6 +151,10 @@ class World:
         self.central_chunk_coord = new_central_chunk_coord
 
         self.chunks, self.temp_last_vertice_index = self.reDefineChunks(self.central_chunk_coord)
+
+        self.sky = Sky((new_central_chunk_coord[0], 10, new_central_chunk_coord[1]))
+        self.moon = Moon((new_central_chunk_coord[0] , 90, new_central_chunk_coord[1]))
+        self.temp_last_vertice_index+=2
     
         self.sendVerticesAndTexture(self.program)
 
@@ -152,8 +163,12 @@ class World:
             Get the vertices of the world
         """
         vertices = np.empty((0, 3), dtype=np.float32)
+        
+        vertices = np.vstack((vertices, self.sky.getVertices()))
+        vertices = np.vstack((vertices, self.moon.getVertices()))
         for chunk in self.chunks:
             vertices = np.vstack((vertices, chunk.getVertices()))
+        
         return vertices
     
     def getTexture(self):
@@ -161,8 +176,12 @@ class World:
             Get the texture of the world
         """
         texture = np.empty((0, 2), dtype=np.float32)
+        texture = np.vstack((texture, self.sky.getTexture()))
+        texture = np.vstack((texture, self.moon.getTexture()))
         for chunk in self.chunks:
             texture = np.vstack((texture, chunk.getTexture()))
+        
+
         return texture
 
     def getNormals(self):
@@ -170,8 +189,12 @@ class World:
             Get the normalss of the world
         """
         normals = np.empty((0, 3), dtype=np.float32)
+        normals = np.vstack((normals, self.sky.getNormals()))
+        normals = np.vstack((normals, self.moon.getNormals()))
         for chunk in self.chunks:
             normals = np.vstack((normals, chunk.getNormals()))
+
+        
         return normals
 
     def draw(self, program, camera):
