@@ -1,0 +1,7 @@
+[X] Performance: Trocar definição de faces para QUADS
+[ ] Performance: Utilizar Map para armazenar blocos e chunks
+
+[ ] Estrutura: Armazenar os blocos de chunks ja gerados em arquivos
+
+[ ] Funcionalidade: Remover blocos
+[ ] Funcionalidade: Adicionar blocos

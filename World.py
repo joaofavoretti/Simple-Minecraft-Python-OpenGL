@@ -159,6 +159,6 @@ class World:
         projection_array = np.array(camera.proj, dtype=np.float32)
         glUniformMatrix4fv(loc_projection, 1, GL_TRUE, projection_array)
 
-        glDrawArrays(GL_TRIANGLES, 0, self.last_vertice_index * 36)
+        glDrawArrays(GL_QUADS, 0, self.last_vertice_index * 36)
 
 
