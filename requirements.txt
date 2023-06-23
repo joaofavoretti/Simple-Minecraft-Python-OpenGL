@@ -1,2 +1,4 @@
-PyGLM
-noise
+PyGLM=2.7.0
+perlin_noise=1.12
+pyopengl=3.1.7
+glfw=2.6.0
