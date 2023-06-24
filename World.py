@@ -33,7 +33,7 @@ class World:
                 _y = 0
                 _z = central_chunk_z + z
 
-                chunks[(_x, _y, _z)] = Chunk((central_chunk_x + x, central_chunk_z + z))
+                chunks[(_x, _y, _z)] = Chunk((_x, _z))
 
         return chunks
     
@@ -85,39 +85,34 @@ class World:
 
         glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
 
-    def reDefineChunks(self, central_chunk_coord):
+    def updateDefinedChunks(self, central_chunk_coord):
         """
             Re-define the chunks of the world using the near chunks that are already defined
         """
-        new_chunks = []
+        new_chunks = {}
         for chunk in self.chunks:
-            if chunk.isNear(central_chunk_coord):
-                new_chunks.append(chunk)
+            if self.chunks[chunk].isNear(central_chunk_coord):
+                new_chunks[chunk] = self.chunks[chunk]
         
         central_chunk_x, central_chunk_z = central_chunk_coord
         for x in range(-2, 2):
             for z in range(-2, 2):
-                if not self.isChunkDefined(new_chunks, (central_chunk_x + x, central_chunk_z + z)):
-                    c = Chunk((central_chunk_x + x, central_chunk_z + z))
-                    new_chunks.append(c)
+                _x = central_chunk_x + x
+                _y = 0
+                _z = central_chunk_z + z
+
+                if not (_x, _y, _z) in new_chunks:
+                    new_chunks[(_x, _y, _z)] = Chunk((_x, _z))
 
         return new_chunks
-
-    def isChunkDefined(self, chunks, chunk_coord):
-        """
-            Check if the chunk is already defined
-        """
-        for chunk in chunks:
-            if chunk.getPosition() == chunk_coord:
-                return True
-        return False
 
     def updateChunks(self, new_central_chunk_coord):
         self.central_chunk_coord = new_central_chunk_coord
 
-        self.chunks = self.reDefineChunks(self.central_chunk_coord)
+        self.chunks = self.updateDefinedChunks(self.central_chunk_coord)
     
-        self.sendVerticesAndTexture(self.program)
+        self.sendVertices(self.program)
+        self.sendTextures(self.program)
 
 
     def getVertices(self):
