@@ -16,44 +16,40 @@ class World:
 
         self.central_chunk_coord = (0, 0)
 
-        self.chunks, self.last_vertice_index = self.defineChunks(self.central_chunk_coord)
-    
-        self.sendVerticesAndTexture(self.program)
+        self.chunks = self.defineChunks(self.central_chunk_coord)
+
+        self.sendVertices(self.program)
+        self.sendTextures(self.program)
 
     def defineChunks(self, central_chunk_coord):
         """
             Define the chunks of the world
         """
-        chunks = []
-        last_vertice_index = 0
+        chunks = {}
         central_chunk_x, central_chunk_z = central_chunk_coord
         for x in range(-2, 2):
             for z in range(-2, 2):
-                c = Chunk((central_chunk_x + x, central_chunk_z + z))
-                c.setVerticeIndex(last_vertice_index)
-                last_vertice_index = c.getLastVerticeIndex()
-                chunks.append(c)
-        
-        return chunks, last_vertice_index
+                _x = central_chunk_x + x
+                _y = 0
+                _z = central_chunk_z + z
+
+                chunks[(_x, _y, _z)] = Chunk((central_chunk_x + x, central_chunk_z + z))
+
+        return chunks
     
-    def sendVerticesAndTexture(self, program):
+    def sendVertices(self, program):
         """
             Send the vertices to the GPU
 
             program(OpenGL.GL.shaders.ShaderProgram) - Shader program
             vertices(numpy.ndarray) - Vertices to be sent to the GPU
-            texture(numpy.ndarray) - Texture to be sent to the GPU
         """
 
-        # TODO: Testar usar o comando glGenBuffers 2 vezes (Para separar essa funcao em duas. sendVertices() e sendTexture())
-
-        if not hasattr(self, 'buffer'):
-            self.vertice_buffer, self.texture_buffer = glGenBuffers(2)
+        if not hasattr(self, 'vertice_buffer'):
+            self.vertice_buffer = glGenBuffers(1)
         
         vertices = self.getVertices()
-        texture = self.getTexture()
 
-        # Vertices
         glBindBuffer(GL_ARRAY_BUFFER, self.vertice_buffer)
         glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
 
@@ -65,7 +61,19 @@ class World:
 
         glVertexAttribPointer(loc, 3, GL_FLOAT, False, stride, offset)
 
-        # Texture
+    def sendTextures(self, program):
+        """
+            Send the texture to the GPU
+
+            program(OpenGL.GL.shaders.ShaderProgram) - Shader program
+            texture(numpy.ndarray) - Texture to be sent to the GPU
+        """
+
+        if not hasattr(self, 'texture_buffer'):
+            self.texture_buffer = glGenBuffers(1)
+        
+        texture = self.getTexture()
+
         glBindBuffer(GL_ARRAY_BUFFER, self.texture_buffer)
         glBufferData(GL_ARRAY_BUFFER, texture.nbytes, texture, GL_STATIC_DRAW)
 
@@ -82,23 +90,18 @@ class World:
             Re-define the chunks of the world using the near chunks that are already defined
         """
         new_chunks = []
-        last_vertice_index = 0
         for chunk in self.chunks:
             if chunk.isNear(central_chunk_coord):
                 new_chunks.append(chunk)
-                chunk.setVerticeIndex(last_vertice_index)
-                last_vertice_index = chunk.getLastVerticeIndex()
         
         central_chunk_x, central_chunk_z = central_chunk_coord
         for x in range(-2, 2):
             for z in range(-2, 2):
                 if not self.isChunkDefined(new_chunks, (central_chunk_x + x, central_chunk_z + z)):
                     c = Chunk((central_chunk_x + x, central_chunk_z + z))
-                    c.setVerticeIndex(last_vertice_index)
-                    last_vertice_index = c.getLastVerticeIndex()
                     new_chunks.append(c)
 
-        return new_chunks, last_vertice_index
+        return new_chunks
 
     def isChunkDefined(self, chunks, chunk_coord):
         """
@@ -112,7 +115,7 @@ class World:
     def updateChunks(self, new_central_chunk_coord):
         self.central_chunk_coord = new_central_chunk_coord
 
-        self.chunks, self.last_vertice_index = self.reDefineChunks(self.central_chunk_coord)
+        self.chunks = self.reDefineChunks(self.central_chunk_coord)
     
         self.sendVerticesAndTexture(self.program)
 
@@ -122,8 +125,13 @@ class World:
             Get the vertices of the world
         """
         vertices = np.empty((0, 3), dtype=np.float32)
+        # Iterate through all the chunks in the chunks dictionary
         for chunk in self.chunks:
-            vertices = np.vstack((vertices, chunk.getVertices()))
+            # Get the vertices of the chunk
+            chunk_vertices = self.chunks[chunk].getVertices()
+            # Add the vertices of the chunk to the vertices array
+            vertices = np.vstack((vertices, chunk_vertices))
+
         return vertices
     
     def getTexture(self):
@@ -132,9 +140,18 @@ class World:
         """
         texture = np.empty((0, 2), dtype=np.float32)
         for chunk in self.chunks:
-            texture = np.vstack((texture, chunk.getTexture()))
+            texture = np.vstack((texture, self.chunks[chunk].getTexture()))
         return texture
     
+    def getLenBlocks(self):
+        """
+            Get the number of blocks in the world
+        """
+        len_blocks = 0
+        for chunk in self.chunks:
+            len_blocks += self.chunks[chunk].getLenBlocks()
+        return len_blocks
+
     def draw(self, program, camera):
         """
             Draw the world.
@@ -142,11 +159,7 @@ class World:
             Draw all the vertices at once to avoid multiple calls to the GPU.
             Optimization over readability.
         """
-        # Version 1
-        # for chunk in self.chunks:
-        #     chunk.draw(program, camera)
 
-        # Version 2 - Incomplete
         loc_model = glGetUniformLocation(program, "model")
         model_array = np.array(glm.mat4(1.0), dtype=np.float32)
         glUniformMatrix4fv(loc_model, 1, GL_TRUE, model_array)
@@ -159,6 +172,6 @@ class World:
         projection_array = np.array(camera.proj, dtype=np.float32)
         glUniformMatrix4fv(loc_projection, 1, GL_TRUE, projection_array)
 
-        glDrawArrays(GL_QUADS, 0, self.last_vertice_index * 36)
+        glDrawArrays(GL_QUADS, 0, self.getLenBlocks() * 24)
 
 

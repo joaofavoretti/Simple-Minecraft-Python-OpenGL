@@ -13,8 +13,6 @@ class Block:
 
         self.size = 1.0
 
-        self.block_index = 0
-
         # if attribute texture_indices is not defined, define it
         if not hasattr(self, "texture_indices"):
             self.texture_indices = {
@@ -73,8 +71,7 @@ class Block:
             (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2)
         ], dtype=np.float32)
-        
-            
+         
 
     def defineTexture(self, texture_indices):
         """
@@ -116,12 +113,6 @@ class Block:
             (texture_indices["top"][0] * size, texture_indices["top"][1] * size + size)
         ], dtype=np.float32)
 
-    def setVerticeIndex(self, index):
-        """
-            Set the block index
-        """
-
-        self.block_index = index
 
     def getVertices(self):
         """
@@ -136,21 +127,3 @@ class Block:
         """
         
         return self.texture
-
-    def draw(self, program, view, proj):
-        
-        loc_model = glGetUniformLocation(program, "model")
-        model_array = np.array(self.model, dtype=np.float32)
-        glUniformMatrix4fv(loc_model, 1, GL_TRUE, model_array)
-
-        loc_view = glGetUniformLocation(program, "view")
-        view_array = np.array(view, dtype=np.float32)
-        glUniformMatrix4fv(loc_view, 1, GL_TRUE, view_array)
-
-        loc_projection = glGetUniformLocation(program, "projection")
-        projection_array = np.array(proj, dtype=np.float32)
-        glUniformMatrix4fv(loc_projection, 1, GL_TRUE, projection_array)
-
-        for face in range(6):
-            glDrawArrays(GL_TRIANGLES, self.block_index * 36 + face * 6, 6)
-            

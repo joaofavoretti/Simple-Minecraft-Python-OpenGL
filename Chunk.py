@@ -26,8 +26,6 @@ class Chunk:
 
         self.pos = (pos[0], 0, pos[1])
 
-        self.chunk_vertice_index = 0
-
         self.noise = PerlinNoise(octaves=4, seed=hash(str(self.pos)))
 
         self.blocks = self.defineBlocks()
@@ -36,7 +34,7 @@ class Chunk:
         """
             World generation function
         """
-        blocks = []
+        blocks = {}
 
         chunk_pos_x, chunk_pos_y, chunk_pos_z = self.pos
 
@@ -45,35 +43,18 @@ class Chunk:
                 height = int(self.noise([x / 50.0, z / 50.0]) * 5 + 2) + 1
 
                 for y in range(height):
+                    _x = chunk_pos_x * 16 + x
+                    _y = chunk_pos_y + y
+                    _z = chunk_pos_z * 16 + z
                     if y == height - 1:
-                        blocks.append(Grass((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
-                        blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
+                        blocks[(_x, _y, _z)] = Grass((_x, _y, _z))
                     elif y == height - 2:
-                        blocks.append(Dirt((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
-                        blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
+                        blocks[(_x, _y, _z)] = Dirt((_x, _y, _z))
                     else:
-                        blocks.append(Stone((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z)))
-                        blocks[-1].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
+                        blocks[(_x, _y, _z)] = Stone((_x, _y, _z))
                         
 
         return blocks
-
-    def setVerticeIndex(self, index):
-        """
-            Set the vertice index of the chunk
-        """
-        self.chunk_vertice_index = index
-
-        # Update block vertice index
-        for i, block in enumerate(self.blocks):
-            block.setVerticeIndex(self.chunk_vertice_index + i)
-
-    def getLastVerticeIndex(self):
-        """
-            Get the vertice index of the chunk
-        """
-
-        return self.chunk_vertice_index + len(self.blocks)
 
     def getPosition(self):
         """
@@ -81,6 +62,9 @@ class Chunk:
         """
 
         return (self.pos[0], self.pos[2])
+
+    def getLenBlocks(self):
+        return len(self.blocks)
 
     def isNear(self, central_coord):
         """
@@ -96,7 +80,7 @@ class Chunk:
         """
         vertices = np.empty((0, 3), dtype=np.float32)
         for block in self.blocks:
-            vertices = np.vstack((vertices, block.getVertices()))
+            vertices = np.vstack((vertices, self.blocks[block].getVertices()))
         return vertices
     
     def getTexture(self):
@@ -105,12 +89,5 @@ class Chunk:
         """
         texture = np.empty((0, 2), dtype=np.float32)
         for block in self.blocks:
-            texture = np.vstack((texture, block.getTexture()))
+            texture = np.vstack((texture, self.blocks[block].getTexture()))
         return texture
-    
-    def draw(self, program, camera):
-        """
-            Draw the chunk
-        """
-        for block in self.blocks:
-            block.draw(program, camera.view, camera.proj)

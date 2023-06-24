@@ -42,7 +42,7 @@ class Camera:
 
         if (self.getNearestChunkCoord(self.cameraPos) != self.nearest_chunk_coord):
             self.nearest_chunk_coord = self.getNearestChunkCoord(self.cameraPos)
-            self.world.updateChunks(self.nearest_chunk_coord)
+            # self.world.updateChunks(self.nearest_chunk_coord)
 
     def moveForward(self, deltaTime):
         # Andar na direcao de cameraFront, mas sem alterar a altura

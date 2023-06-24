@@ -194,10 +194,12 @@ def main():
     fragment_code = open(FRAGMENT_SHADER_FNAME, 'r').read()
 
     window, program = createWindow(vertex_code, fragment_code)
+    
     glfw.set_key_callback(window, keyHandler)
     glfw.set_cursor_pos_callback(window, mouseHandler)
     glfw.set_mouse_button_callback(window, mouseButtonHandler)
     glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
+    
     loadTexture(TEXTURE_FILE)
 
     glfw.show_window(window)
@@ -219,8 +221,6 @@ def main():
     while not glfw.window_should_close(window):
         glfw.poll_events()
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
-        # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
 
         world.draw(program, camera)
 
