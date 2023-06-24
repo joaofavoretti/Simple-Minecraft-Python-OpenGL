@@ -4,11 +4,11 @@ from OpenGL.GL import *
 import numpy as np
 
 class Block:
-    def __init__ (self, pos):
+    def __init__ (self, block_coord):
         """
             Initialize the block centered at (x, y, z)
 
-            pos(glm.vec3) - Position of the block in the space. Must be integers, otherwise can cause interpolation problems.
+            block_coord(glm.vec3) - Position of the block in the space. Must be integers, otherwise can cause interpolation problems.
         """
 
         self.size = 1.0
@@ -23,53 +23,53 @@ class Block:
                 "front": (0, 2),
                 "back": (0, 2),
             }
-        
-        self.vertices = self.defineVertices(pos, self.size)
+
+        self.vertices = self.defineVertices(block_coord, self.size)
 
         self.texture = self.defineTexture(self.texture_indices)
 
         self.model = glm.mat4(1.0)
 
     # TODO: Use a block.obj file to define the vertices
-    def defineVertices(self, pos, size):
+    def defineVertices(self, block_coord, size):
         """
             Define the vertices of the block
 
-            pos(tuple(float, float, float)) - Position of the block in the world
+            block_coord(tuple(float, float, float)) - Position of the block in the world
             size(float) - Size of the block
         """
         # Define the vertices of a block using 6 vertices per face
         return np.array([
 
-            (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
-            (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2),
-            (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
-            (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
+            (block_coord[0] - size/2, block_coord[1] - size/2, block_coord[2] + size/2),
+            (block_coord[0] + size/2, block_coord[1] - size/2, block_coord[2] + size/2),
+            (block_coord[0] + size/2, block_coord[1] + size/2, block_coord[2] + size/2),
+            (block_coord[0] - size/2, block_coord[1] + size/2, block_coord[2] + size/2),
 
-            (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2),
-            (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
-            (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
-            (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
+            (block_coord[0] + size/2, block_coord[1] - size/2, block_coord[2] + size/2),
+            (block_coord[0] + size/2, block_coord[1] - size/2, block_coord[2] - size/2),
+            (block_coord[0] + size/2, block_coord[1] + size/2, block_coord[2] - size/2),
+            (block_coord[0] + size/2, block_coord[1] + size/2, block_coord[2] + size/2),
 
-            (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
-            (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2),
-            (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
-            (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
+            (block_coord[0] + size/2, block_coord[1] - size/2, block_coord[2] - size/2),
+            (block_coord[0] - size/2, block_coord[1] - size/2, block_coord[2] - size/2),
+            (block_coord[0] - size/2, block_coord[1] + size/2, block_coord[2] - size/2),
+            (block_coord[0] + size/2, block_coord[1] + size/2, block_coord[2] - size/2),
 
-            (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2),
-            (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
-            (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
-            (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
+            (block_coord[0] - size/2, block_coord[1] - size/2, block_coord[2] - size/2),
+            (block_coord[0] - size/2, block_coord[1] - size/2, block_coord[2] + size/2),
+            (block_coord[0] - size/2, block_coord[1] + size/2, block_coord[2] + size/2),
+            (block_coord[0] - size/2, block_coord[1] + size/2, block_coord[2] - size/2),
 
-            (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2),
-            (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
-            (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2),
-            (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
+            (block_coord[0] - size/2, block_coord[1] - size/2, block_coord[2] - size/2),
+            (block_coord[0] + size/2, block_coord[1] - size/2, block_coord[2] - size/2),
+            (block_coord[0] + size/2, block_coord[1] - size/2, block_coord[2] + size/2),
+            (block_coord[0] - size/2, block_coord[1] - size/2, block_coord[2] + size/2),
 
-            (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
-            (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
-            (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
-            (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2)
+            (block_coord[0] - size/2, block_coord[1] + size/2, block_coord[2] + size/2),
+            (block_coord[0] + size/2, block_coord[1] + size/2, block_coord[2] + size/2),
+            (block_coord[0] + size/2, block_coord[1] + size/2, block_coord[2] - size/2),
+            (block_coord[0] - size/2, block_coord[1] + size/2, block_coord[2] - size/2)
         ], dtype=np.float32)
          
 
@@ -127,3 +127,10 @@ class Block:
         """
         
         return self.texture
+
+    def getType(self):
+        """
+            Return the type of the block
+        """
+        
+        return self.type
