@@ -1,7 +1,27 @@
 [X] Performance: Trocar definição de faces para QUADS
 [X] Performance: Utilizar Map para armazenar blocos e chunks
 
-[ ] Estrutura: Armazenar os blocos de chunks ja gerados em arquivos
+[X] Estrutura: Armazenar os blocos de chunks ja gerados em arquivos
+
+[ ] Criacao/Update de chunks paralelizado
+
+Processo 1 Thread 1 -> Atualizar a tela
+    - A cada atualizacao verifica se a lista de vertices mudou
+        - Se mudou manda pra GPU
+        - Continua renderizando
+
+Processo 1 Thread 2 -> Atualizar lista de vertices
+    - Manter uma lista de vertices na classe World
+    - Verificar se existem novos arquivos que nao estao na lista de vertices
+
+Processo 2 Thread 1-> Criar terreno e salvar novos arquivos
+    - Recebe uma lista de chunks que devem ser atualizados
+
+- Adicionar uma lista de chunks que serao gerados (em algum momento)
+- Adicionar uma lista de vertices da classe Worlds
+
+1) Utilizar uma lista de vertices
+2) Adicionar updateChunks
 
 [ ] Funcionalidade: Remover blocos
 [ ] Funcionalidade: Adicionar blocos

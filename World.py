@@ -2,10 +2,12 @@ import glfw
 import glm
 from OpenGL.GL import *
 import numpy as np
+import os
+import multiprocessing
 
 from Chunk import Chunk
 
-CHUNK_DELTA = 2
+CHUNK_DELTA = 3
 
 class World:
     def __init__(self, program):
@@ -18,10 +20,13 @@ class World:
 
         self.central_chunk_coord = (0, 0)
 
-        self.chunks = self.defineChunks(self.central_chunk_coord)
+        self.chunks = {}
+        self.chunk_vertices = {}
+        self.chunk_textures = {}
 
-        self.sendVertices(self.program)
-        self.sendTextures(self.program)
+        chunk_coord_set = World.getNearestChunks(self.central_chunk_coord)
+        self.parallelGenerateChunkFiles(chunk_coord_set)
+
     
     def defineChunks(self, central_chunk_coord, existing_chunks=None):
         
@@ -36,13 +41,53 @@ class World:
         for x in range(-CHUNK_DELTA, CHUNK_DELTA):
             for z in range(-CHUNK_DELTA, CHUNK_DELTA):
                 _x = central_chunk_x + x
-                _y = 0
                 _z = central_chunk_z + z
 
-                if not (_x, _y, _z) in new_chunks:
-                    new_chunks[(_x, _y, _z)] = Chunk((_x, _z))
+                if not (_x, _z) in new_chunks:
+                    new_chunks[(_x, _z)] = Chunk((_x, _z))
 
         return new_chunks
+
+    @staticmethod
+    def getNearestChunks(central_chunk_coord):
+        """
+            Get the nearest chunks to the central chunk
+
+            central_chunk_coord(tuple) - Central chunk coordinate
+        """
+        chunk_coord_set = set()
+
+        central_chunk_x, central_chunk_z = central_chunk_coord
+        for x in range(-CHUNK_DELTA, CHUNK_DELTA):
+            for z in range(-CHUNK_DELTA, CHUNK_DELTA):
+                _x = central_chunk_x + x
+                _z = central_chunk_z + z
+
+                chunk_coord_set.add((_x, _z))
+        
+        return chunk_coord_set
+
+    @staticmethod
+    def generateChunkFiles(chunk_coord_set):
+        """
+            Generate the chunks
+
+            chunk_coord_set(list) - List of chunk coordinates
+        """
+
+        for chunk_coord in chunk_coord_set:
+            Chunk.generateChunkFile(chunk_coord)
+
+    def parallelGenerateChunkFiles(self, chunk_coord_set):
+        """
+            Generate the chunks in parallel
+
+            chunk_coord_set(list) - List of chunk coordinates
+        """
+
+        process = multiprocessing.Process(target=World.generateChunkFiles, args=(chunk_coord_set,))
+        process.start()
+        process.join()
 
     def sendVertices(self, program):
         """
@@ -95,11 +140,16 @@ class World:
     def updateChunks(self, new_central_chunk_coord):
         self.central_chunk_coord = new_central_chunk_coord
 
-        self.chunks = self.defineChunks(self.central_chunk_coord, self.chunks)
-    
-        self.sendVertices(self.program)
-        self.sendTextures(self.program)
+        new_chunk_coord_set = World.getNearestChunks(new_central_chunk_coord)
+        chunk_coord_set = set(self.chunks.keys())
 
+        chunks_to_remove = chunk_coord_set - new_chunk_coord_set
+        chunks_to_add = new_chunk_coord_set - chunk_coord_set
+
+        for chunk in chunks_to_remove:
+            del self.chunks[chunk]
+
+        self.parallelGenerateChunkFiles(chunks_to_add)
 
     def getVertices(self):
         """
@@ -108,10 +158,8 @@ class World:
         vertices = np.empty((0, 3), dtype=np.float32)
         # Iterate through all the chunks in the chunks dictionary
         for chunk in self.chunks:
-            # Get the vertices of the chunk
-            chunk_vertices = self.chunks[chunk].getVertices()
             # Add the vertices of the chunk to the vertices array
-            vertices = np.vstack((vertices, chunk_vertices))
+            vertices = np.vstack((vertices, self.chunk_vertices[chunk]))
 
         return vertices
     
@@ -121,7 +169,8 @@ class World:
         """
         texture = np.empty((0, 2), dtype=np.float32)
         for chunk in self.chunks:
-            texture = np.vstack((texture, self.chunks[chunk].getTexture()))
+            texture = np.vstack((texture, self.chunk_textures[chunk]))
+
         return texture
     
     def getLenBlocks(self):
@@ -133,6 +182,22 @@ class World:
             len_blocks += self.chunks[chunk].getLenBlocks()
         return len_blocks
 
+    def lookForNewlyCreatedChunks(self):
+        chunk_coord_set = self.getNearestChunks(self.central_chunk_coord)
+        
+        for chunk_coord in chunk_coord_set:
+            if chunk_coord in self.chunks:
+                continue
+
+            if os.path.isfile(Chunk.getChunkPath(chunk_coord)):
+                self.chunks[chunk_coord] = Chunk(chunk_coord)
+                self.chunk_vertices[chunk_coord] = self.chunks[chunk_coord].getVertices()
+                self.chunk_textures[chunk_coord] = self.chunks[chunk_coord].getTexture()
+                self.sendVertices(self.program)
+                self.sendTextures(self.program)
+
+                return
+
     def draw(self, program, camera):
         """
             Draw the world.
@@ -141,6 +206,9 @@ class World:
             Optimization over readability.
         """
 
+        self.lookForNewlyCreatedChunks()
+
+        # Draw vertices routines
         loc_model = glGetUniformLocation(program, "model")
         model_array = np.array(glm.mat4(1.0), dtype=np.float32)
         glUniformMatrix4fv(loc_model, 1, GL_TRUE, model_array)
@@ -153,6 +221,7 @@ class World:
         projection_array = np.array(camera.proj, dtype=np.float32)
         glUniformMatrix4fv(loc_projection, 1, GL_TRUE, projection_array)
 
+        # TODO: Check if the function draw works without any chunks
         glDrawArrays(GL_QUADS, 0, self.getLenBlocks() * 24)
 
 

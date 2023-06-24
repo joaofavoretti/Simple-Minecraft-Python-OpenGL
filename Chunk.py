@@ -11,6 +11,10 @@ from Stone import Stone
 
 CHUNK_DB_DIR = os.path.join(os.getcwd(), 'db')
 
+CHUNK_X_LENGTH = 16
+CHUNK_Y_LENGTH = 2
+CHUNK_Z_LENGTH = 16
+
 class Chunk:
     def __init__ (self, chunk_coord):
         """
@@ -20,13 +24,7 @@ class Chunk:
 
         """
 
-        self.x_length = 16
-        self.y_length = 1
-        self.z_length = 16
-
-        self.chunk_coord = (chunk_coord[0], 0, chunk_coord[1])
-
-        self.noise = PerlinNoise(octaves=4, seed=hash(str(self.chunk_coord)))
+        self.chunk_coord = chunk_coord
 
         self.blocks = self.defineBlocks(self.chunk_coord)
 
@@ -34,28 +32,31 @@ class Chunk:
         """
             World generation function
         """
-        
+
         blocks = None
 
-        chunk_fname = f"chunk_{chunk_coord[0]}_{chunk_coord[2]}"
-        chunk_path = os.path.join(CHUNK_DB_DIR, chunk_fname)
+        chunk_path = Chunk.getChunkPath(chunk_coord)
 
         if os.path.isfile(chunk_path):
             blocks = self.loadBlocks(chunk_path)
         else:
-            blocks = self.generateBlocks(chunk_coord)  
-            self.saveBlocks(chunk_path, blocks)          
+            blocks = Chunk.generateBlocks(chunk_coord)  
+            Chunk.saveBlocks(chunk_path, blocks)          
 
         return blocks
 
-    def generateBlocks(self, chunk_coord):
+    @staticmethod
+    def generateBlocks(chunk_coord):
         blocks = {}
 
-        chunk_coord_x, chunk_coord_y, chunk_coord_z = chunk_coord
+        chunk_coord_x, chunk_coord_z = chunk_coord
+        chunk_coord_y = 0
+
+        noise = PerlinNoise(octaves=4, seed=hash(str(chunk_coord)))
     
-        for x in range(self.x_length):
-            for z in range(self.z_length):
-                height = int(self.noise([x / 50.0, z / 50.0]) * 5 + 2) + 1
+        for x in range(CHUNK_X_LENGTH):
+            for z in range(CHUNK_Z_LENGTH):
+                height = int(noise([x / 50.0, z / 50.0]) * 5 + 2) + CHUNK_Y_LENGTH
 
                 for y in range(height):
                     _x = chunk_coord_x * 16 + x
@@ -70,7 +71,16 @@ class Chunk:
 
         return blocks
     
-    def saveBlocks(self, chunk_path, blocks):
+    @staticmethod
+    def getChunkPath(chunk_coord):
+        """
+            Get the path of the chunk file
+        """
+
+        return os.path.join(CHUNK_DB_DIR, f"chunk_{chunk_coord[0]}_{chunk_coord[1]}")
+
+    @staticmethod
+    def saveBlocks(chunk_path, blocks):
         """
             Save the blocks in a file
             Format
@@ -84,6 +94,16 @@ class Chunk:
             for block in blocks:
                 f.write(f"b {block[0]} {block[1]} {block[2]} {BLOCK_BIND.inverse[type(blocks[block])]}\n")
     
+    @staticmethod
+    def generateChunkFile(chunk_coord):
+
+        chunk_path = Chunk.getChunkPath(chunk_coord)
+        if os.path.isfile(chunk_path):
+            return
+        
+        blocks = Chunk.generateBlocks(chunk_coord)
+        Chunk.saveBlocks(chunk_path, blocks)
+
     def loadBlocks(self, chunk_path):
         """
             Load the blocks from a file
@@ -99,13 +119,6 @@ class Chunk:
                     blocks[(x, y, z)] = BLOCK_BIND[block_type]((x, y, z))
         return blocks
 
-    def getPosition(self):
-        """
-            Get the position of the chunk
-        """
-
-        return (self.chunk_coord[0], self.chunk_coord[2])
-
     def getLenBlocks(self):
         return len(self.blocks)
 
@@ -114,7 +127,7 @@ class Chunk:
             Check if the chunk is near the central chunk
         """
         central_chunk_x, central_chunk_z = central_coord
-        chunk_x, chunk_z = self.chunk_coord[0], self.chunk_coord[2]
+        chunk_x, chunk_z = self.chunk_coord[0], self.chunk_coord[1]
         return abs(central_chunk_x - chunk_x) <= 1 and abs(central_chunk_z - chunk_z) <= 1
 
     def getVertices(self):
