@@ -4,6 +4,7 @@ from OpenGL.GL import *
 import numpy as np
 import os
 import multiprocessing
+import threading
 
 from Chunk import Chunk
 
@@ -26,27 +27,6 @@ class World:
 
         chunk_coord_set = World.getNearestChunks(self.central_chunk_coord)
         self.parallelGenerateChunkFiles(chunk_coord_set)
-
-    
-    def defineChunks(self, central_chunk_coord, existing_chunks=None):
-        
-        new_chunks = {}
-        
-        if existing_chunks:
-            for chunk in existing_chunks:
-                if existing_chunks[chunk].isNear(central_chunk_coord):
-                    new_chunks[chunk] = existing_chunks[chunk]
-
-        central_chunk_x, central_chunk_z = central_chunk_coord
-        for x in range(-CHUNK_DELTA, CHUNK_DELTA):
-            for z in range(-CHUNK_DELTA, CHUNK_DELTA):
-                _x = central_chunk_x + x
-                _z = central_chunk_z + z
-
-                if not (_x, _z) in new_chunks:
-                    new_chunks[(_x, _z)] = Chunk((_x, _z))
-
-        return new_chunks
 
     @staticmethod
     def getNearestChunks(central_chunk_coord):

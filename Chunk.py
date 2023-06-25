@@ -122,14 +122,6 @@ class Chunk:
     def getLenBlocks(self):
         return len(self.blocks)
 
-    def isNear(self, central_coord):
-        """
-            Check if the chunk is near the central chunk
-        """
-        central_chunk_x, central_chunk_z = central_coord
-        chunk_x, chunk_z = self.chunk_coord[0], self.chunk_coord[1]
-        return abs(central_chunk_x - chunk_x) <= 1 and abs(central_chunk_z - chunk_z) <= 1
-
     def getVertices(self):
         """
             Get the vertices of the chunk
