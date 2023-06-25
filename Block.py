@@ -49,45 +49,33 @@ class Block:
 
             (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2), # positive z face
             (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2),
-            (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
-            (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
-            (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
-
+            (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
+            
             (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2), # positive x face
             (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
-            (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
-            (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
-            (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
+            (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
 
             (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2), # negative z face
             (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2),
-            (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
-            (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
-            (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
+            (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
 
             (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2), # negative x face
             (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
-            (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
-            (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
-            (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2),
+            (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
 
             (pos[0] - size/2, pos[1] - size/2, pos[2] - size/2), # negative y face
             (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
-            (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
-            (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
-            (pos[0] + size/2, pos[1] - size/2, pos[2] - size/2),
             (pos[0] + size/2, pos[1] - size/2, pos[2] + size/2),
+            (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2),
 
             (pos[0] - size/2, pos[1] + size/2, pos[2] + size/2), # positive y face
             (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
+            (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2),
             (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
-            (pos[0] - size/2, pos[1] + size/2, pos[2] - size/2),
-            (pos[0] + size/2, pos[1] + size/2, pos[2] + size/2),
-            (pos[0] + size/2, pos[1] + size/2, pos[2] - size/2)
         ], dtype=np.float32)
             
                 
@@ -103,45 +91,33 @@ class Block:
         return np.array([
             (texture_indices["front"][0] * size, texture_indices["front"][1] * size),
             (texture_indices["front"][0] * size + size, texture_indices["front"][1] * size),
-            (texture_indices["front"][0] * size, texture_indices["front"][1] * size + size),
-            (texture_indices["front"][0] * size, texture_indices["front"][1] * size + size),
-            (texture_indices["front"][0] * size + size, texture_indices["front"][1] * size),
             (texture_indices["front"][0] * size + size, texture_indices["front"][1] * size + size),
+            (texture_indices["front"][0] * size, texture_indices["front"][1] * size + size),
 
             (texture_indices["left"][0] * size, texture_indices["left"][1] * size),
             (texture_indices["left"][0] * size + size, texture_indices["left"][1] * size),
-            (texture_indices["left"][0] * size, texture_indices["left"][1] * size + size),
-            (texture_indices["left"][0] * size, texture_indices["left"][1] * size + size),
-            (texture_indices["left"][0] * size + size, texture_indices["left"][1] * size),
             (texture_indices["left"][0] * size + size, texture_indices["left"][1] * size + size),
+            (texture_indices["left"][0] * size, texture_indices["left"][1] * size + size),
             
             (texture_indices["back"][0] * size, texture_indices["back"][1] * size),
             (texture_indices["back"][0] * size + size, texture_indices["back"][1] * size),
-            (texture_indices["back"][0] * size, texture_indices["back"][1] * size + size),
-            (texture_indices["back"][0] * size, texture_indices["back"][1] * size + size),
-            (texture_indices["back"][0] * size + size, texture_indices["back"][1] * size),
             (texture_indices["back"][0] * size + size, texture_indices["back"][1] * size + size),
+            (texture_indices["back"][0] * size, texture_indices["back"][1] * size + size),
 
             (texture_indices["right"][0] * size, texture_indices["right"][1] * size),
             (texture_indices["right"][0] * size + size, texture_indices["right"][1] * size),
-            (texture_indices["right"][0] * size, texture_indices["right"][1] * size + size),
-            (texture_indices["right"][0] * size, texture_indices["right"][1] * size + size),
-            (texture_indices["right"][0] * size + size, texture_indices["right"][1] * size),
             (texture_indices["right"][0] * size + size, texture_indices["right"][1] * size + size),
+            (texture_indices["right"][0] * size, texture_indices["right"][1] * size + size),
             
             (texture_indices["bottom"][0] * size, texture_indices["bottom"][1] * size),
             (texture_indices["bottom"][0] * size + size, texture_indices["bottom"][1] * size),
-            (texture_indices["bottom"][0] * size, texture_indices["bottom"][1] * size + size),
-            (texture_indices["bottom"][0] * size, texture_indices["bottom"][1] * size + size),
-            (texture_indices["bottom"][0] * size + size, texture_indices["bottom"][1] * size),
             (texture_indices["bottom"][0] * size + size, texture_indices["bottom"][1] * size + size),
+            (texture_indices["bottom"][0] * size, texture_indices["bottom"][1] * size + size),
             
             (texture_indices["top"][0] * size, texture_indices["top"][1] * size),
             (texture_indices["top"][0] * size + size, texture_indices["top"][1] * size),
+            (texture_indices["top"][0] * size + size, texture_indices["top"][1] * size + size),
             (texture_indices["top"][0] * size, texture_indices["top"][1] * size + size),
-            (texture_indices["top"][0] * size, texture_indices["top"][1] * size + size),
-            (texture_indices["top"][0] * size + size, texture_indices["top"][1] * size),
-            (texture_indices["top"][0] * size + size, texture_indices["top"][1] * size + size)
         ], dtype=np.float32)
 
     def defineNormals(self):
@@ -153,11 +129,7 @@ class Block:
             (0.0, 0.0, 1.0),
             (0.0, 0.0, 1.0),
             (0.0, 0.0, 1.0),
-            (0.0, 0.0, 1.0),
-            (0.0, 0.0, 1.0),
 
-            (1.0, 0.0, 0.0),
-            (1.0, 0.0, 0.0),
             (1.0, 0.0, 0.0),
             (1.0, 0.0, 0.0),
             (1.0, 0.0, 0.0),
@@ -167,11 +139,7 @@ class Block:
             (0.0, 0.0, -1.0),
             (0.0, 0.0, -1.0),
             (0.0, 0.0, -1.0),
-            (0.0, 0.0, -1.0),
-            (0.0, 0.0, -1.0),
 
-            (-1.0, 0.0, 0.0),
-            (-1.0, 0.0, 0.0),
             (-1.0, 0.0, 0.0),
             (-1.0, 0.0, 0.0),
             (-1.0, 0.0, 0.0),
@@ -181,15 +149,11 @@ class Block:
             (0.0, -1.0, 0.0),
             (0.0, -1.0, 0.0),
             (0.0, -1.0, 0.0),
-            (0.0, -1.0, 0.0),
-            (0.0, -1.0, 0.0),
 
             (0.0, 1.0, 0.0),
             (0.0, 1.0, 0.0),
             (0.0, 1.0, 0.0),
             (0.0, 1.0, 0.0),
-            (0.0, 1.0, 0.0),
-            (0.0, 1.0, 0.0)
         ], dtype=np.float32)
 
     def setVerticeIndex(self, index):

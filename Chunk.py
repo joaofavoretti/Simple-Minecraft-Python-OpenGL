@@ -27,12 +27,18 @@ class Chunk:
         self.z_length = 16
 
         self.pos = (pos[0], 0, pos[1])
+        self.hasTree = pos[0] % 2 == 0 and pos[1] % 2 == 0
+        self.hasHouse = pos[0] % 5 == 0 and pos[1] % 5 == 0 and pos[0] % 2 == 1
 
         self.chunk_vertice_index = 0
 
         self.noise = PerlinNoise(octaves=4, seed=hash(str(self.pos)))
 
         self.blocks = self.defineBlocks()
+
+        self.vertices = self.getVertices()
+        self.texture = self.getTexture()
+        self.normals = self.getNormals()
 
     def defineBlocks(self):
         """
@@ -49,49 +55,44 @@ class Chunk:
                 for y in range(height):
                     if y == height - 1:
                         blocks[(x,y,z)] = Grass((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z))
-                        blocks[(x,y,z)].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
                     elif y == height - 2:
                         blocks[(x,y,z)] = Dirt((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z))
-                        blocks[(x,y,z)].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
                     else:
                         blocks[(x,y,z)] = Stone((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z))
-                        blocks[(x,y,z)].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
 
                 
-                if x == 0 and z == 0:
-                    print("ZERO NO CHUNK", chunk_pos_x, chunk_pos_z)
-                    for h in range(3):
-                        blocks[(x,height + h,z)] = Wood((chunk_pos_x * 16, chunk_pos_y + height + h, chunk_pos_z * 16))
-                        blocks[(x,height + h,z)].setVerticeIndex(self.chunk_vertice_index + len(blocks) - 1)
+        if self.hasTree:
+            height = int(self.noise([1 / 50.0, 1 / 50.0]) * 5 + 2) + 1
+            for h in range(3):
+                blocks[(1,height + h,1)] = Wood((chunk_pos_x * 16 + 1, chunk_pos_y + height + h, chunk_pos_z * 16 + 1))
+
+            for i in range(3):
+                for j in range(3):
+                    blocks[(i, height + 3, j)] = Leaves((chunk_pos_x * 16 + i, chunk_pos_y + height + 3, chunk_pos_z * 16 + j))
+                    if i == 1 or j == 1:
+                        blocks[(i, height + 4, j)] = Leaves((chunk_pos_x * 16 + i, chunk_pos_y + height + 4, chunk_pos_z * 16 + j))
+                 
+                    if i == 1 and j == 1:
+                        blocks[(i, height + 5, j)] = Leaves((chunk_pos_x * 16 + i, chunk_pos_y + height + 5, chunk_pos_z * 16 + j))
+         
+        if self.hasHouse:
+            height = int(self.noise([1 / 50.0, 1 / 50.0]) * 5 + 2) + 1
+            for i in range(5):
+                for j in range(5):
+                    blocks[(i, height - 1, j)] = Stone((chunk_pos_x * 16 + i, chunk_pos_y + height - 1, chunk_pos_z * 16 + j))
+                    blocks[(i, height + 5, j)] = Stone((chunk_pos_x * 16 + i, chunk_pos_y + height + 5, chunk_pos_z * 16 + j))
+                    if i == 0 or j == 0 or i == 4 or j == 4:
+                        for h in range(5):
+                            if i == 2 and j == 0 and (h == 0 or h == 1):
+                                continue
+                            blocks[(i, height + h, j)] = Stone((chunk_pos_x * 16 + i, chunk_pos_y + height + h, chunk_pos_z * 16 + j))
                     
-                    for i in range(-1,2):
-                        for j in range(-1,2):
-                            blocks[(i, height + 3, j)] = Leaves((chunk_pos_x * 16 + i, chunk_pos_y + height + 3, chunk_pos_z * 16 + j))
-                            
-                            if i == 0 or j == 0:
-                                blocks[(i, height + 4, j)] = Leaves((chunk_pos_x * 16 + i, chunk_pos_y + height + 4, chunk_pos_z * 16 + j))
-                        
-                            if i == 0 and j == 0:
-                                blocks[(i, height + 5, j)] = Leaves((chunk_pos_x * 16 + i, chunk_pos_y + height + 5, chunk_pos_z * 16 + j))
+            blocks[(1, height, 3)] = Dirt((chunk_pos_x * 16 + 1, chunk_pos_y + height, chunk_pos_z * 16 + 3))
+            blocks[(2, height, 3)] = Dirt((chunk_pos_x * 16 + 2, chunk_pos_y + height, chunk_pos_z * 16 + 3))
+            blocks[(3, height, 3)] = Dirt((chunk_pos_x * 16 + 3, chunk_pos_y + height, chunk_pos_z * 16 + 3))
+            blocks[(1, height + 1, 3)] = Dirt((chunk_pos_x * 16 + 1, chunk_pos_y + height + 1, chunk_pos_z * 16 + 3))
 
         return blocks
-
-    def setVerticeIndex(self, index):
-        """
-            Set the vertice index of the chunk
-        """
-        self.chunk_vertice_index = index
-
-        # Update block vertice index
-        for i, block in enumerate(self.blocks.values()):
-            block.setVerticeIndex(self.chunk_vertice_index + i)
-
-    def getLastVerticeIndex(self):
-        """
-            Get the vertice index of the chunk
-        """
-
-        return self.chunk_vertice_index + len(self.blocks)
 
     def getPosition(self):
         """
@@ -106,7 +107,7 @@ class Chunk:
         """
         central_chunk_x, central_chunk_z = central_coord
         chunk_x, chunk_z = self.pos[0], self.pos[2]
-        return abs(central_chunk_x - chunk_x) <= 1 and abs(central_chunk_z - chunk_z) <= 1
+        return abs(central_chunk_x - chunk_x) <= 5 and abs(central_chunk_z - chunk_z) <= 5
 
     def getVertices(self):
         """
@@ -135,10 +136,52 @@ class Chunk:
             normals = np.vstack((normals, block.getNormals()))
         return normals
  
+    def setVerticesAndTexture(self, program):
+        if not hasattr(self, 'vertice_buffer'):
+            self.vertice_buffer, self.texture_buffer, self.normal_buffer = glGenBuffers(3)
+        
+        # Vertices
+        glBindBuffer(GL_ARRAY_BUFFER, self.vertice_buffer)
+        glBufferData(GL_ARRAY_BUFFER, self.vertices.nbytes, self.vertices, GL_STATIC_DRAW)
+
+        loc = glGetAttribLocation(program, "position")
+        glEnableVertexAttribArray(loc)
+
+        stride = self.vertices.strides[0]
+        offset = ctypes.c_void_p(0)
+
+        glVertexAttribPointer(loc, 3, GL_FLOAT, False, stride, offset)
+
+        # Texture
+        glBindBuffer(GL_ARRAY_BUFFER, self.texture_buffer)
+        glBufferData(GL_ARRAY_BUFFER, self.texture.nbytes, self.texture, GL_STATIC_DRAW)
+
+        loc = glGetAttribLocation(program, "texture")
+        glEnableVertexAttribArray(loc)
+
+        stride = self.texture.strides[0]
+        offset = ctypes.c_void_p(0)
+
+        glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
+        
+        # Normals
+        glBindBuffer(GL_ARRAY_BUFFER, self.normal_buffer)
+        glBufferData(GL_ARRAY_BUFFER, self.normals.nbytes, self.normals, GL_STATIC_DRAW)
+
+        loc = glGetAttribLocation(program, "normal")
+        glEnableVertexAttribArray(loc)
+
+        stride = self.normals.strides[0]
+        offset = ctypes.c_void_p(0)
+
+        glVertexAttribPointer(loc, 3, GL_FLOAT, False, stride, offset)
 
     def draw(self, program, camera):
         """
             Draw the chunk
         """
-        for block in self.blocks.values():
-            block.draw(program, camera.view, camera.proj)
+
+        self.setVerticesAndTexture(program)
+        glDrawArrays(GL_QUADS, 0, 24 * len(self.blocks))
+
+

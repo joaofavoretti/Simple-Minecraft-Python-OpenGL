@@ -20,9 +20,10 @@ class Camera:
         self.lastX = WINDOW_WIDTH / 2.0
         self.lastY = WINDOW_HEIGHT / 2.0
         self.fov = 45.0
-
+        self.farDistance = 300
+        
         self.view = glm.lookAt(self.cameraPos, self.cameraPos + self.cameraFront, self.cameraUp)
-        self.proj = glm.perspective(glm.radians(45), WINDOW_WIDTH/WINDOW_HEIGHT, 0.1, 200.0)
+        self.proj = glm.perspective(glm.radians(self.fov), WINDOW_WIDTH/WINDOW_HEIGHT, 0.1, self.farDistance)
 
         self.world = world
         self.updatingChunks = False
@@ -48,11 +49,14 @@ class Camera:
             self.updatingChunks = True
             update_chunks_thread = threading.Thread(target = self.parallelUpdate)
             update_chunks_thread.start()
-
+    
     def parallelUpdate(self):
         print(self.nearest_chunk_coord)
         self.world.updateChunks(self.nearest_chunk_coord)
         self.updatingChunks = False
+    
+    def updateProj(self):
+        self.proj = glm.perspective(glm.radians(self.fov), WINDOW_WIDTH/WINDOW_HEIGHT, 0.1, self.farDistance)
 
     def moveForward(self, deltaTime):
         # Andar na direcao de cameraFront, mas sem alterar a altura
@@ -85,6 +89,24 @@ class Camera:
     def moveDown(self, deltaTime):
         self.cameraPos -= self.cameraUp * deltaTime * 0.1
         self.updateView()
+    
+    def increaseFov(self, deltaTime):
+        self.fov += deltaTime * 0.1
+        self.fov = min(80.0, self.fov)
+        self.updateProj()
+
+    def decreaseFov(self, deltaTime):
+        self.fov -= deltaTime * 0.1
+        self.fov = max(20.0, self.fov)
+        self.updateProj()
+
+    def increaseFar(self, deltaTime):
+        self.farDistance += deltaTime
+        self.updateProj()
+
+    def decreaseFar(self, deltaTime):
+        self.farDistance -= deltaTime
+        self.updateProj()
 
     def breakBlock(self):
         print('break block - Yet to be implemented')

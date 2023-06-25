@@ -17,7 +17,7 @@ class Sky (Block):
             "back": (5, 1),
         }
 
-        self.size = 180
+        self.size = 300
         self.nSquares = 20
         self.squareSize = self.size / self.nSquares
         
@@ -145,47 +145,47 @@ class Sky (Block):
         norms = []
         for i in range(self.nSquares):
             for j in range(self.nSquares):
-                norms.append((0.0, 0.0, 1.0)),
-                norms.append((0.0, 0.0, 1.0)),
-                norms.append((0.0, 0.0, 1.0)),
-                norms.append((0.0, 0.0, 1.0)),
-                norms.append((0.0, 0.0, 1.0)),
-                norms.append((0.0, 0.0, 1.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
 
-                norms.append((1.0, 0.0, 0.0)),
-                norms.append((1.0, 0.0, 0.0)),
-                norms.append((1.0, 0.0, 0.0)),
-                norms.append((1.0, 0.0, 0.0)),
-                norms.append((1.0, 0.0, 0.0)),
-                norms.append((1.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
 
-                norms.append((0.0, 0.0, -1.0)),
-                norms.append((0.0, 0.0, -1.0)),
-                norms.append((0.0, 0.0, -1.0)),
-                norms.append((0.0, 0.0, -1.0)),
-                norms.append((0.0, 0.0, -1.0)),
-                norms.append((0.0, 0.0, -1.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
 
-                norms.append((-1.0, 0.0, 0.0)),
-                norms.append((-1.0, 0.0, 0.0)),
-                norms.append((-1.0, 0.0, 0.0)),
-                norms.append((-1.0, 0.0, 0.0)),
-                norms.append((-1.0, 0.0, 0.0)),
-                norms.append((-1.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
 
-                norms.append((0.0, -1.0, 0.0)),
-                norms.append((0.0, -1.0, 0.0)),
-                norms.append((0.0, -1.0, 0.0)),
-                norms.append((0.0, -1.0, 0.0)),
-                norms.append((0.0, -1.0, 0.0)),
-                norms.append((0.0, -1.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
 
-                norms.append((0.0, 1.0, 0.0)),
-                norms.append((0.0, 1.0, 0.0)),
-                norms.append((0.0, 1.0, 0.0)),
-                norms.append((0.0, 1.0, 0.0)),
-                norms.append((0.0, 1.0, 0.0)),
-                norms.append((0.0, 1.0, 0.0))
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0)),
+                norms.append((0.0, 0.0, 0.0))
 
         return np.array(norms, dtype=np.float32)
 

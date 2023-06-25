@@ -64,6 +64,42 @@ def createWindow(vert_code, frag_code):
 
     return window, program
 
+def increaseSpecular():
+    global ks
+    ks = min(1.0, ks + 0.01)
+    loc_ks = glGetUniformLocation(program, "ks")
+    glUniform1f(loc_ks, ks)
+    
+def decreaseSpecular():
+    global ks
+    ks = max(0.1, ks - 0.01)
+    loc_ks = glGetUniformLocation(program, "ks")
+    glUniform1f(loc_ks, ks)
+
+def increaseDiffusive():
+    global kd
+    kd = min(1.0, kd + 0.01)
+    loc_kd = glGetUniformLocation(program, "kd")
+    glUniform1f(loc_kd, kd)
+
+def decreaseDiffusive():
+    global kd
+    kd = max(0.1, kd - 0.01)
+    loc_kd = glGetUniformLocation(program, "kd")
+    glUniform1f(loc_kd, kd)
+
+def increaseAmbient():
+    global ka
+    ka = min(1.0, ka + 0.01)
+    loc_ka = glGetUniformLocation(program, "ka")
+    glUniform1f(loc_ka, ka)
+
+def decreaseAmbient():
+    global ka
+    ka = max(0.1, ka - 0.01)
+    loc_ka = glGetUniformLocation(program, "ka")
+    glUniform1f(loc_ka, ka)
+
 def keyHandler(window, key, scancode, action, mods):
     """
         Handle the key events
@@ -93,6 +129,28 @@ def keyHandler(window, key, scancode, action, mods):
         camera.moveUp(1.0)
     elif key == glfw.KEY_Z:
         camera.moveDown(1.0)
+    elif key == glfw.KEY_O:
+        camera.increaseFov(1.0)
+    elif key == glfw.KEY_I:
+        camera.decreaseFov(1.0)
+    elif key == glfw.KEY_L:
+        camera.increaseFar(1.0)
+    elif key == glfw.KEY_K:
+        camera.decreaseFar(1.0)
+    elif key == glfw.KEY_J:
+        increaseSpecular()
+    elif key == glfw.KEY_H:
+        decreaseSpecular()
+    elif key == glfw.KEY_U:
+        increaseDiffusive()
+    elif key == glfw.KEY_Y:
+        decreaseDiffusive()
+    elif key == glfw.KEY_G:
+        increaseAmbient()
+    elif key == glfw.KEY_F:
+        decreaseAmbient()
+        
+
 
 def mouseHandler(window, xpos, ypos):
     """
@@ -156,6 +214,8 @@ def main():
     # Setup boring code
     vertex_code = open(VERTEX_SHADER_FNAME, 'r').read()
     fragment_code = open(FRAGMENT_SHADER_FNAME, 'r').read()
+    
+    global program
 
     window, program = createWindow(vertex_code, fragment_code)
     glfw.set_key_callback(window, keyHandler)
@@ -164,18 +224,25 @@ def main():
     glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
     loadTexture(TEXTURE_FILE)
     
+    global lightdir
+    lightdir = (0.0, 1.0, 1.0)
     loc_light_dir = glGetUniformLocation(program, "lightDir")
-    glUniform3f(loc_light_dir, 1.0, 1.0, 1.0)
+    glUniform3f(loc_light_dir, lightdir[0], lightdir[1], lightdir[2])
     
+    global ka
+    ka = 0.7
     loc_ka = glGetUniformLocation(program, "ka")
-    glUniform1f(loc_ka, 0.7)
+    glUniform1f(loc_ka, ka)
 
-
+    global kd
+    kd = 0.3
     loc_kd = glGetUniformLocation(program, "kd")
-    glUniform1f(loc_kd, 0.3)
+    glUniform1f(loc_kd, kd)
     
+    global ks
+    ks = 0.2
     loc_ks = glGetUniformLocation(program, "ks")
-    glUniform1f(loc_ks, 0.2)
+    glUniform1f(loc_ks, ks)
     
     loc_ns = glGetUniformLocation(program, "ns")
     glUniform1f(loc_ns, 3.0)
@@ -195,20 +262,26 @@ def main():
     world = World(program, window)
 
     camera = Camera(world)
+    
+    theta = 0
 
     while not glfw.window_should_close(window):
         glfw.poll_events()
 
-        world.vertices_semaphore.acquire()
         loc_viewPos = glGetUniformLocation(program, "viewPos")
         glUniform3f(loc_viewPos, camera.cameraPos[0], camera.cameraPos[1], camera.cameraPos[2])
+        
+        theta += 0.01
+        lightdir = (np.sin(theta), 1.0, np.cos(theta))
+        loc_light_dir = glGetUniformLocation(program, "lightDir")
+        glUniform3f(loc_light_dir, lightdir[0], lightdir[1], lightdir[2])
+        
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         # glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)
         
         world.draw(program, camera)
         glfw.swap_buffers(window)
-        world.vertices_semaphore.release()
 
     glfw.terminate()
 

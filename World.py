@@ -3,6 +3,7 @@ import glm
 from OpenGL.GL import *
 import numpy as np
 import threading
+import multiprocessing
 
 from Chunk import Chunk
 from Moon import Moon
@@ -14,128 +15,62 @@ class World:
             Initialize the world
         """
 
-
-        self.vertices_semaphore = threading.Semaphore()
-        
         self.window = window
 
         self.program = program
 
         self.central_chunk_coord = (0, 0)
 
-        self.chunks, self.temp_last_vertice_index = self.defineChunks(self.central_chunk_coord)
-        self.last_vertice_index = self.temp_last_vertice_index
+        self.chunks_to_produce = multiprocessing.Queue()
+        self.chunks_to_render = multiprocessing.Queue()
 
-        self.sky = Sky((0, 10, 0))
-        self.moon = Moon((0, 90, 0))
-        self.last_vertice_index+=2
-        self.temp_last_vertice_index+=2
+        self.chunks = self.defineChunks(self.central_chunk_coord)
 
-        self.sendVerticesAndTexture(self.program)
+        self.start_worker()
+ 
+    def __del__(self):
+        self.chunks_to_produce.put(-1)
+        self.p.join()
+
+    def create_chunks(self, to_produce, to_render):
+        while True:
+            c = to_produce.get()
+            if c == -1:
+                return
+            to_render.put(Chunk(c))
+
+    def start_worker(self):
+        self.p = multiprocessing.Process(target = self.create_chunks, args = (self.chunks_to_produce, self.chunks_to_render))
+        self.p.start()
 
     def defineChunks(self, central_chunk_coord):
         """
             Define the chunks of the world
         """
         chunks = []
-        last_vertice_index = 0
         central_chunk_x, central_chunk_z = central_chunk_coord
-        for x in range(-5, 5):
-            for z in range(-5, 5):
-                c = Chunk((central_chunk_x + x, central_chunk_z + z))
-                c.setVerticeIndex(last_vertice_index)
-                last_vertice_index = c.getLastVerticeIndex()
-                chunks.append(c)
+        for x in range(-5, 6):
+            for z in range(-5, 6):
+                self.chunks_to_produce.put((central_chunk_x + x, central_chunk_z + z))
         
-        return chunks, last_vertice_index
+        return chunks
     
-    def sendVerticesAndTexture(self, program):
-        """
-            Send the vertices to the GPU
-
-            program(OpenGL.GL.shaders.ShaderProgram) - Shader program
-            vertices(numpy.ndarray) - Vertices to be sent to the GPU
-            texture(numpy.ndarray) - Texture to be sent to the GPU
-        """
-
-        # TODO: Testar usar o comando glGenBuffers 2 vezes (Para separar essa funcao em duas. sendVertices() e sendTexture())
-
-        if not hasattr(self, 'vertice_buffer'):
-            self.vertice_buffer, self.texture_buffer, self.normal_buffer = glGenBuffers(3)
-        
-
-        vertices = self.getVertices()
-        texture = self.getTexture()
-        normals = self.getNormals()
-
-        self.vertices_semaphore.acquire()
-        
-        glfw.make_context_current(self.window)
-        
-        self.last_vertice_index = self.temp_last_vertice_index
-
-        # Vertices
-        glBindBuffer(GL_ARRAY_BUFFER, self.vertice_buffer)
-        glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
-
-        loc = glGetAttribLocation(program, "position")
-        glEnableVertexAttribArray(loc)
-
-        stride = vertices.strides[0]
-        offset = ctypes.c_void_p(0)
-
-        glVertexAttribPointer(loc, 3, GL_FLOAT, False, stride, offset)
-
-        # Texture
-        glBindBuffer(GL_ARRAY_BUFFER, self.texture_buffer)
-        glBufferData(GL_ARRAY_BUFFER, texture.nbytes, texture, GL_STATIC_DRAW)
-
-        loc = glGetAttribLocation(program, "texture")
-        glEnableVertexAttribArray(loc)
-
-        stride = texture.strides[0]
-        offset = ctypes.c_void_p(0)
-
-        glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
-        
-        # Normals
-        print("OI")
-        glBindBuffer(GL_ARRAY_BUFFER, self.normal_buffer)
-        glBufferData(GL_ARRAY_BUFFER, normals.nbytes, normals, GL_STATIC_DRAW)
-
-        loc = glGetAttribLocation(program, "normal")
-        glEnableVertexAttribArray(loc)
-
-        stride = vertices.strides[0]
-        offset = ctypes.c_void_p(0)
-
-        glVertexAttribPointer(loc, 3, GL_FLOAT, False, stride, offset)
-
-
-        self.vertices_semaphore.release()
-
     def reDefineChunks(self, central_chunk_coord):
         """
             Re-define the chunks of the world using the near chunks that are already defined
         """
         new_chunks = []
-        last_vertice_index = 0
         for chunk in self.chunks:
             if chunk.isNear(central_chunk_coord):
                 new_chunks.append(chunk)
-                chunk.setVerticeIndex(last_vertice_index)
-                last_vertice_index = chunk.getLastVerticeIndex()
         
         central_chunk_x, central_chunk_z = central_chunk_coord
-        for x in range(-5, 5):
-            for z in range(-5, 5):
+        for x in range(-5, 6):
+            for z in range(-5, 6):
                 if not self.isChunkDefined(new_chunks, (central_chunk_x + x, central_chunk_z + z)):
-                    c = Chunk((central_chunk_x + x, central_chunk_z + z))
-                    c.setVerticeIndex(last_vertice_index)
-                    last_vertice_index = c.getLastVerticeIndex()
-                    new_chunks.append(c)
+                    self.chunks_to_produce.put((central_chunk_x + x, central_chunk_z + z))
 
-        return new_chunks, last_vertice_index
+        return new_chunks
 
     def isChunkDefined(self, chunks, chunk_coord):
         """
@@ -150,53 +85,11 @@ class World:
         
         self.central_chunk_coord = new_central_chunk_coord
 
-        self.chunks, self.temp_last_vertice_index = self.reDefineChunks(self.central_chunk_coord)
+        self.chunks = self.reDefineChunks(self.central_chunk_coord)
 
-        self.sky = Sky((new_central_chunk_coord[0], 10, new_central_chunk_coord[1]))
-        self.moon = Moon((new_central_chunk_coord[0] , 90, new_central_chunk_coord[1]))
-        self.temp_last_vertice_index+=2
+        self.sky = Sky((16 * new_central_chunk_coord[0], 10, 16 * new_central_chunk_coord[1]))
+        self.moon = Moon((16 * new_central_chunk_coord[0] , 90, 16 * new_central_chunk_coord[1]))
     
-        self.sendVerticesAndTexture(self.program)
-
-    def getVertices(self):
-        """
-            Get the vertices of the world
-        """
-        vertices = np.empty((0, 3), dtype=np.float32)
-        
-        vertices = np.vstack((vertices, self.sky.getVertices()))
-        vertices = np.vstack((vertices, self.moon.getVertices()))
-        for chunk in self.chunks:
-            vertices = np.vstack((vertices, chunk.getVertices()))
-        
-        return vertices
-    
-    def getTexture(self):
-        """
-            Get the texture of the world
-        """
-        texture = np.empty((0, 2), dtype=np.float32)
-        texture = np.vstack((texture, self.sky.getTexture()))
-        texture = np.vstack((texture, self.moon.getTexture()))
-        for chunk in self.chunks:
-            texture = np.vstack((texture, chunk.getTexture()))
-        
-
-        return texture
-
-    def getNormals(self):
-        """
-            Get the normalss of the world
-        """
-        normals = np.empty((0, 3), dtype=np.float32)
-        normals = np.vstack((normals, self.sky.getNormals()))
-        normals = np.vstack((normals, self.moon.getNormals()))
-        for chunk in self.chunks:
-            normals = np.vstack((normals, chunk.getNormals()))
-
-        
-        return normals
-
     def draw(self, program, camera):
         """
             Draw the world.
@@ -221,5 +114,9 @@ class World:
         loc_projection = glGetUniformLocation(program, "projection")
         projection_array = np.array(camera.proj, dtype=np.float32)
         glUniformMatrix4fv(loc_projection, 1, GL_TRUE, projection_array)
-    
-        glDrawArrays(GL_TRIANGLES, 0, self.last_vertice_index * 36)
+        
+        while not self.chunks_to_render.empty():
+            self.chunks.append(self.chunks_to_render.get())
+        
+        for chunk in self.chunks:
+            chunk.draw(program, camera)
