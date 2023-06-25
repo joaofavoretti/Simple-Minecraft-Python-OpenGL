@@ -25,8 +25,31 @@ class World:
         self.chunk_vertices = {}
         self.chunk_textures = {}
 
+        self.vertice_buffer = None
+        self.texture_buffer = None
+
+        self.vertices = np.empty((0, 3), dtype=np.float32)
+        self.textures = np.empty((0, 2), dtype=np.float32)
+        self.lenVertices = 0
+
+        self.worldGeneratioProcess, \
+        self.worldGenerationRequestQueue, \
+        self.worldGenerationResponseQueue = World.initializeWorldGenerationProcess()
+
+        self.updateBuffersProcess, \
+        self.updateBuffersRequestQueue, \
+        self.updateBuffersResponseQueue = World.initializeUpdateBuffersProcess()
+
         chunk_coord_set = World.getNearestChunks(self.central_chunk_coord)
         self.parallelGenerateChunkFiles(chunk_coord_set)
+
+    def __del__(self):
+        """
+            Delete the world
+        """
+
+        self.worldGeneratioProcess.terminate()
+        self.updateBuffersProcess.terminate()
 
     @staticmethod
     def getNearestChunks(central_chunk_coord):
@@ -48,15 +71,70 @@ class World:
         return chunk_coord_set
 
     @staticmethod
-    def generateChunkFiles(chunk_coord_set):
+    def generateChunkFiles(worldGenerationRequestQueue, worldGenerationResponseQueue):
         """
             Generate the chunks
 
             chunk_coord_set(list) - List of chunk coordinates
         """
 
-        for chunk_coord in chunk_coord_set:
-            Chunk.generateChunkFile(chunk_coord)
+        while True:
+            chunk_coord = worldGenerationRequestQueue.get(block=True)
+
+            chunk = Chunk(chunk_coord)
+            chunk_vertices = chunk.getVertices()
+            chunk_textures = chunk.getTexture()
+            
+            worldGenerationResponseQueue.put((chunk_coord, chunk, chunk_vertices, chunk_textures))
+
+    @staticmethod
+    def initializeWorldGenerationProcess():
+        """
+            Initialize the world generation process
+        """
+
+        worldGenerationRequestQueue = multiprocessing.Queue()
+        worldGenerationResponseQueue = multiprocessing.Queue()
+        worldGeneratioProcess = multiprocessing.Process(target=World.generateChunkFiles, args=(worldGenerationRequestQueue, worldGenerationResponseQueue))
+
+        worldGeneratioProcess.start()
+
+        return worldGeneratioProcess, worldGenerationRequestQueue, worldGenerationResponseQueue
+
+    @staticmethod
+    def updateBuffers(updateBuffersRequestQueue, updateBuffersResponseQueue):
+        """
+            Update the buffers
+
+            updateBuffersRequestQueue(multiprocessing.Queue) - Request queue
+            updateBuffersResponseQueue(multiprocessing.Queue) - Response queue
+        """
+
+        while True:
+            chunk_vertices, chunk_textures = updateBuffersRequestQueue.get(block=True)
+
+            vertices = np.empty((0, 3), dtype=np.float32)
+            textures = np.empty((0, 2), dtype=np.float32)
+
+            for chunk_coord in chunk_vertices:
+                vertices = np.vstack((vertices, chunk_vertices[chunk_coord]))
+                textures = np.vstack((textures, chunk_textures[chunk_coord]))
+
+            updateBuffersResponseQueue.put((vertices, textures, len(vertices)))
+
+
+    @staticmethod
+    def initializeUpdateBuffersProcess():
+        """
+            Initialize the update buffers process
+        """
+
+        updateBuffersRequestQueue = multiprocessing.Queue()
+        updateBuffersResponseQueue = multiprocessing.Queue()
+        updateBuffersProcess = multiprocessing.Process(target=World.updateBuffers, args=(updateBuffersRequestQueue, updateBuffersResponseQueue))
+        updateBuffersProcess.start()
+
+        return updateBuffersProcess, updateBuffersRequestQueue, updateBuffersResponseQueue
 
     def parallelGenerateChunkFiles(self, chunk_coord_set):
         """
@@ -65,9 +143,8 @@ class World:
             chunk_coord_set(list) - List of chunk coordinates
         """
 
-        process = multiprocessing.Process(target=World.generateChunkFiles, args=(chunk_coord_set,))
-        process.start()
-        process.join()
+        for chunk_coord in chunk_coord_set:
+            self.worldGenerationRequestQueue.put(chunk_coord)
 
     def sendVertices(self, program):
         """
@@ -77,18 +154,16 @@ class World:
             vertices(numpy.ndarray) - Vertices to be sent to the GPU
         """
 
-        if not hasattr(self, 'vertice_buffer'):
+        if self.vertice_buffer == None:
             self.vertice_buffer = glGenBuffers(1)
-        
-        vertices = self.getVertices()
 
         glBindBuffer(GL_ARRAY_BUFFER, self.vertice_buffer)
-        glBufferData(GL_ARRAY_BUFFER, vertices.nbytes, vertices, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, self.vertices.nbytes, self.vertices, GL_STATIC_DRAW)
 
         loc = glGetAttribLocation(program, "position")
         glEnableVertexAttribArray(loc)
 
-        stride = vertices.strides[0]
+        stride = self.vertices.strides[0]
         offset = ctypes.c_void_p(0)
 
         glVertexAttribPointer(loc, 3, GL_FLOAT, False, stride, offset)
@@ -101,18 +176,17 @@ class World:
             texture(numpy.ndarray) - Texture to be sent to the GPU
         """
 
-        if not hasattr(self, 'texture_buffer'):
+        if self.texture_buffer == None:
             self.texture_buffer = glGenBuffers(1)
         
-        texture = self.getTexture()
 
         glBindBuffer(GL_ARRAY_BUFFER, self.texture_buffer)
-        glBufferData(GL_ARRAY_BUFFER, texture.nbytes, texture, GL_STATIC_DRAW)
+        glBufferData(GL_ARRAY_BUFFER, self.textures.nbytes, self.textures, GL_STATIC_DRAW)
 
         loc = glGetAttribLocation(program, "texture")
         glEnableVertexAttribArray(loc)
 
-        stride = texture.strides[0]
+        stride = self.textures.strides[0]
         offset = ctypes.c_void_p(0)
 
         glVertexAttribPointer(loc, 2, GL_FLOAT, False, stride, offset)
@@ -163,20 +237,25 @@ class World:
         return len_blocks
 
     def lookForNewlyCreatedChunks(self):
-        chunk_coord_set = self.getNearestChunks(self.central_chunk_coord)
         
-        for chunk_coord in chunk_coord_set:
+        if not self.updateBuffersResponseQueue.empty():
+            self.vertices, self.textures, self.lenVertices = self.updateBuffersResponseQueue.get(block=False)
+
+            self.sendVertices(self.program)
+            self.sendTextures(self.program)
+
+        elif not self.worldGenerationResponseQueue.empty():
+            chunk_coord, chunk, chunk_vertices, chunk_textures = self.worldGenerationResponseQueue.get(block=False)
+
             if chunk_coord in self.chunks:
-                continue
-
-            if os.path.isfile(Chunk.getChunkPath(chunk_coord)):
-                self.chunks[chunk_coord] = Chunk(chunk_coord)
-                self.chunk_vertices[chunk_coord] = self.chunks[chunk_coord].getVertices()
-                self.chunk_textures[chunk_coord] = self.chunks[chunk_coord].getTexture()
-                self.sendVertices(self.program)
-                self.sendTextures(self.program)
-
                 return
+
+            self.chunks[chunk_coord] = chunk
+            self.chunk_vertices[chunk_coord] = chunk_vertices
+            self.chunk_textures[chunk_coord] = chunk_textures
+
+            self.updateBuffersRequestQueue.put((self.chunk_vertices, self.chunk_textures))
+
 
     def draw(self, program, camera):
         """
@@ -202,6 +281,6 @@ class World:
         glUniformMatrix4fv(loc_projection, 1, GL_TRUE, projection_array)
 
         # TODO: Check if the function draw works without any chunks
-        glDrawArrays(GL_QUADS, 0, self.getLenBlocks() * 24)
+        glDrawArrays(GL_QUADS, 0, self.lenVertices)
 
 

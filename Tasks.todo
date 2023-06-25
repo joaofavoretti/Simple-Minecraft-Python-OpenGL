@@ -20,8 +20,9 @@ Processo 2 Thread 1-> Criar terreno e salvar novos arquivos
 - Adicionar uma lista de chunks que serao gerados (em algum momento)
 - Adicionar uma lista de vertices da classe Worlds
 
-1) Utilizar uma lista de vertices
-2) Adicionar updateChunks
+Adicionar paralelismo na atualizacao de uma lista de vertices
+
+SUFICIENTE E ESCALAVEL
 
 [ ] Funcionalidade: Remover blocos
 [ ] Funcionalidade: Adicionar blocos

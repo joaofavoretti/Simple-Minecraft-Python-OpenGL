@@ -226,6 +226,9 @@ def main():
 
         glfw.swap_buffers(window)
 
+    del world
+    del camera
+
     glfw.terminate()
 
 

@@ -1,6 +1,7 @@
 from OpenGL.GL import *
 import numpy as np
 import os
+import pickle
 from perlin_noise import PerlinNoise
 
 from block_bind import BLOCK_BIND
@@ -12,7 +13,7 @@ from Stone import Stone
 CHUNK_DB_DIR = os.path.join(os.getcwd(), 'db')
 
 CHUNK_X_LENGTH = 16
-CHUNK_Y_LENGTH = 2
+CHUNK_Y_LENGTH = 16
 CHUNK_Z_LENGTH = 16
 
 class Chunk:
@@ -77,22 +78,21 @@ class Chunk:
             Get the path of the chunk file
         """
 
-        return os.path.join(CHUNK_DB_DIR, f"chunk_{chunk_coord[0]}_{chunk_coord[1]}")
+        return os.path.join(CHUNK_DB_DIR, f"chunk_{chunk_coord[0]}_{chunk_coord[1]}.pkl")
 
     @staticmethod
     def saveBlocks(chunk_path, blocks):
         """
             Save the blocks in a file
-            Format
-            x y z type
+            Format pickle
         """
 
         # Create all the directories if they don't exist
         os.makedirs(os.path.dirname(chunk_path), exist_ok=True)
 
-        with open(chunk_path, 'w') as f:
-            for block in blocks:
-                f.write(f"b {block[0]} {block[1]} {block[2]} {BLOCK_BIND.inverse[type(blocks[block])]}\n")
+        with open(chunk_path, 'wb') as f:
+            pickle.dump(blocks, f)
+            
     
     @staticmethod
     def generateChunkFile(chunk_coord):
@@ -107,17 +107,15 @@ class Chunk:
     def loadBlocks(self, chunk_path):
         """
             Load the blocks from a file
-            Format
-            x y z type
+            Format pickle
         """
-        blocks = {}
-        with open(chunk_path, 'r') as f:
-            for line in f:
-                if line.startswith('b'):
-                    _, x, y, z, block_type = line.split()
-                    x, y, z = int(x), int(y), int(z)
-                    blocks[(x, y, z)] = BLOCK_BIND[block_type]((x, y, z))
+            
+        with open(chunk_path, 'rb') as f:
+            blocks = pickle.load(f)
+        
         return blocks
+        
+    
 
     def getLenBlocks(self):
         return len(self.blocks)
