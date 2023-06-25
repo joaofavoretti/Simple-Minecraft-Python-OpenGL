@@ -20,7 +20,7 @@ class Camera:
         self.lastX = WINDOW_WIDTH / 2.0
         self.lastY = WINDOW_HEIGHT / 2.0
         self.fov = 45.0
-        self.farDistance = 300
+        self.farDistance = 600
         
         self.view = glm.lookAt(self.cameraPos, self.cameraPos + self.cameraFront, self.cameraUp)
         self.proj = glm.perspective(glm.radians(self.fov), WINDOW_WIDTH/WINDOW_HEIGHT, 0.1, self.farDistance)
@@ -84,10 +84,12 @@ class Camera:
 
     def moveUp(self, deltaTime):
         self.cameraPos += self.cameraUp * deltaTime * 0.1
+        self.cameraPos.y = min(40.0, self.cameraPos.y)
         self.updateView()
 
     def moveDown(self, deltaTime):
         self.cameraPos -= self.cameraUp * deltaTime * 0.1
+        self.cameraPos.y = max(1.0, self.cameraPos.y)
         self.updateView()
     
     def increaseFov(self, deltaTime):

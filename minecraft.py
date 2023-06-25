@@ -14,8 +14,6 @@ from World import World
 VERTEX_SHADER_FNAME = './shaders/vertex.glsl'
 FRAGMENT_SHADER_FNAME = './shaders/fragment.glsl'
 
-TEXTURE_FILE = './assets/texture_atlas.png'
-
 WINDOW_WIDTH = 1920
 WINDOW_HEIGHT = 1080
 
@@ -182,32 +180,6 @@ def mouseButtonHandler(window, button, action, mods):
     elif button == glfw.MOUSE_BUTTON_RIGHT and action == glfw.PRESS:
         camera.placeBlock()
 
-def loadTexture(texture_file):
-    """
-        Load the texture file. Texture is 16x16. Pixelation is intentional
-
-        texture_file(str) - Texture file path
-    """
-    glEnable(GL_TEXTURE_2D)
-
-    texture = glGenTextures(1)
-    glBindTexture(GL_TEXTURE_2D, 0)
-
-    # Set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
-
-    # Set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)	
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
-
-    # Load image
-    image = Image.open(texture_file)
-    img_data = image.tobytes("raw", "RGB", 0, -1)
-
-    # Generate texture
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.size[0], image.size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, img_data)
-
 def main():
     global camera
 
@@ -222,9 +194,7 @@ def main():
     glfw.set_cursor_pos_callback(window, mouseHandler)
     glfw.set_mouse_button_callback(window, mouseButtonHandler)
     glfw.set_input_mode(window, glfw.CURSOR, glfw.CURSOR_DISABLED)
-    loadTexture(TEXTURE_FILE)
     
-    global lightdir
     lightdir = (0.0, 1.0, 1.0)
     loc_light_dir = glGetUniformLocation(program, "lightDir")
     glUniform3f(loc_light_dir, lightdir[0], lightdir[1], lightdir[2])

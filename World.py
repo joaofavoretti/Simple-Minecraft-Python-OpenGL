@@ -4,10 +4,14 @@ from OpenGL.GL import *
 import numpy as np
 import threading
 import multiprocessing
+from PIL import Image
 
 from Chunk import Chunk
 from Moon import Moon
 from Sky import Sky
+
+TEXTURE_ATLAS = './assets/texture_atlas.png'
+TEXTURE_SKY = './assets/Starred_Sky.png'
 
 class World:
     def __init__(self, program, window):
@@ -27,7 +31,36 @@ class World:
         self.chunks = self.defineChunks(self.central_chunk_coord)
 
         self.start_worker()
+
+        self.light_theta = 0
+        self.sky = Sky(self.light_theta)
  
+    def loadTexture(self, texture_file):
+        """
+            Load the texture file. Texture is 16x16. Pixelation is intentional
+    
+            texture_file(str) - Texture file path
+        """
+        glEnable(GL_TEXTURE_2D)
+
+        texture = glGenTextures(1)
+        glBindTexture(GL_TEXTURE_2D, 0)
+    
+        # Set the texture wrapping parameters
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT)	
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT)
+    
+        # Set texture filtering parameters
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)	
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
+    
+        # Load image
+        image = Image.open(texture_file)
+        img_data = image.tobytes("raw", "RGB", 0, -1)
+    
+        # Generate texture
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, image.size[0], image.size[1], 0, GL_RGB, GL_UNSIGNED_BYTE, img_data)
+
     def __del__(self):
         self.chunks_to_produce.put(-1)
         self.p.join()
@@ -103,6 +136,11 @@ class World:
 
         # Version 2 - Incomplete
 
+        self.light_theta += 0.001
+        lightdir = (np.sin(self.light_theta), 1.0, np.cos(self.light_theta))
+        loc_light_dir = glGetUniformLocation(program, "lightDir")
+        glUniform3f(loc_light_dir, lightdir[0], lightdir[1], lightdir[2])
+
         loc_model = glGetUniformLocation(program, "model")
         model_array = np.array(glm.mat4(1.0), dtype=np.float32)
         glUniformMatrix4fv(loc_model, 1, GL_TRUE, model_array)
@@ -115,6 +153,10 @@ class World:
         projection_array = np.array(camera.proj, dtype=np.float32)
         glUniformMatrix4fv(loc_projection, 1, GL_TRUE, projection_array)
         
+        self.loadTexture(TEXTURE_SKY)
+        self.sky.draw(program, camera, 0.001)
+    
+        self.loadTexture(TEXTURE_ATLAS)
         while not self.chunks_to_render.empty():
             self.chunks.append(self.chunks_to_render.get())
         

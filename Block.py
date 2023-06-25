@@ -13,8 +13,6 @@ class Block:
         if not hasattr(self, 'size'):
             self.size = 1.0
 
-        self.block_index = 0
-
         # if attribute texture_indices is not defined, define it
         if not hasattr(self, "texture_indices"):
             self.texture_indices = {
@@ -30,7 +28,6 @@ class Block:
 
         self.texture = self.defineTexture(self.texture_indices)
         self.normals = self.defineNormals()
-        self.model = glm.mat4(1.0)
 
     # TODO: Use a block.obj file to define the vertices
     def defineVertices(self, pos, size):
@@ -44,7 +41,7 @@ class Block:
         array_vertices = []
             
 
-        # Define the vertices of a block using 6 vertices per face
+        # Define the vertices of a block using 4 vertices per face
         return np.array([
 
             (pos[0] - size/2, pos[1] - size/2, pos[2] + size/2), # positive z face

@@ -180,6 +180,13 @@ class Chunk:
         """
             Draw the chunk
         """
+        loc_model = glGetUniformLocation(program, "model")
+        model_array = np.array(glm.mat4(1.0), dtype=np.float32)
+        glUniformMatrix4fv(loc_model, 1, GL_TRUE, model_array)
+
+        loc_view = glGetUniformLocation(program, "view")
+        view_array = np.array(camera.view, dtype=np.float32)
+        glUniformMatrix4fv(loc_view, 1, GL_TRUE, view_array)
 
         self.setVerticesAndTexture(program)
         glDrawArrays(GL_QUADS, 0, 24 * len(self.blocks))
