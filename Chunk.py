@@ -35,10 +35,7 @@ class Chunk:
         self.noise = PerlinNoise(octaves=4, seed=hash(str(self.pos)))
 
         self.blocks = self.defineBlocks()
-
-        self.vertices = self.getVertices()
-        self.texture = self.getTexture()
-        self.normals = self.getNormals()
+        self.update()
 
     def defineBlocks(self):
         """
@@ -135,6 +132,11 @@ class Chunk:
         for block in self.blocks.values():
             normals = np.vstack((normals, block.getNormals()))
         return normals
+    
+    def update(self):
+        self.vertices = self.getVertices()
+        self.texture = self.getTexture()
+        self.normals = self.getNormals()
  
     def setVerticesAndTexture(self, program):
         if not hasattr(self, 'vertice_buffer'):

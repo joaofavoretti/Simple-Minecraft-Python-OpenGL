@@ -3,6 +3,7 @@ import glm
 from OpenGL.GL import *
 import numpy as np
 import threading
+from Stone import Stone
 
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
@@ -110,11 +111,58 @@ class Camera:
         self.farDistance -= deltaTime
         self.updateProj()
 
+    def raycast(self, length=100, step_size=0.1):
+        # Project window center to world coordinates
+        view = np.array(self.getView())
+        view_dir = -(view[2,:3] / np.linalg.norm(view[2,:3]))
+        
+        # Initial position
+        current_pos = np.array(self.cameraPos)
+        prev_block = None
+
+        for i in range(length):
+            # Map current pos to chunk pos
+            chunk_pos = np.floor(current_pos/16).astype(int)
+            
+            block = np.floor(current_pos).astype(int)
+            block[0] -= chunk_pos[0]*16
+            block[2] -= chunk_pos[2]*16
+            block = tuple(block)
+            
+            # Check for intersection with block
+            for idx in range(0, len(self.world.chunks)):
+                if self.world.chunks[idx].pos == (chunk_pos[0], 0, chunk_pos[2]) and \
+                   self.world.chunks[idx].blocks.get(block, False):
+                    return block, prev_block, idx
+            
+            # Previous block is stored (used to place a new block)
+            prev_block = block
+
+            # Move the ray forward
+            current_pos += step_size*view_dir
+            
+        return None, None, None
+
     def breakBlock(self):
-        print('break block - Yet to be implemented')
+        # Raycasting from camera to find selected block
+        block, _, chunk_idx = self.raycast()
+        
+        # Remove block
+        if block:
+            chunk = self.world.chunks[chunk_idx]
+            chunk.blocks.pop(block)
+            chunk.update()
 
     def placeBlock(self):
-        print('place block - Yet to be implemented')
+        # Raycasting from camera to find selected block
+        _, prev_block, chunk_idx = self.raycast()
+        
+        # Add block
+        if prev_block:
+            chunk = self.world.chunks[chunk_idx]
+            block_pos = (prev_block[0]+chunk.pos[0]*16, prev_block[1], prev_block[2]+chunk.pos[2]*16)
+            chunk.blocks[prev_block] = Stone(block_pos)
+            chunk.update()
 
     def processMouseMovement(self, xpos, ypos):
         if self.firstMouse:
