@@ -9,6 +9,7 @@ from PIL import Image
 from Chunk import Chunk
 from Moon import Moon
 from Sky import Sky
+from Cloud import Cloud
 
 TEXTURE_ATLAS = './assets/texture_atlas.png'
 TEXTURE_SKY = './assets/Starred_Sky.png'
@@ -27,13 +28,17 @@ class World:
 
         self.chunks_to_produce = multiprocessing.Queue()
         self.chunks_to_render = multiprocessing.Queue()
+        self.clouds_to_produce = multiprocessing.Queue()
+        self.clouds_to_render = multiprocessing.Queue()
 
-        self.chunks = self.defineChunks(self.central_chunk_coord)
+        self.chunks, self.clouds = self.defineChunks(self.central_chunk_coord)
 
         self.start_worker()
 
         self.light_theta = 0
         self.sky = Sky(self.light_theta)
+
+        self.moon = Moon((0, 200, 0))
  
     def loadTexture(self, texture_file):
         """
@@ -65,15 +70,19 @@ class World:
         self.chunks_to_produce.put(-1)
         self.p.join()
 
-    def create_chunks(self, to_produce, to_render):
+    def create_chunks(self, to_produce, to_render, clouds_to_produce, clouds_to_render):
         while True:
             c = to_produce.get()
+            #cl = clouds_to_produce.get()
             if c == -1:
                 return
-            to_render.put(Chunk(c))
+            if(c != -1):
+                to_render.put(Chunk(c))
+            """ if(cl != -1):
+                clouds_to_render.put(Cloud(cl)) """
 
     def start_worker(self):
-        self.p = multiprocessing.Process(target = self.create_chunks, args = (self.chunks_to_produce, self.chunks_to_render))
+        self.p = multiprocessing.Process(target = self.create_chunks, args = (self.chunks_to_produce, self.chunks_to_render, self.clouds_to_produce, self.clouds_to_render))
         self.p.start()
 
     def defineChunks(self, central_chunk_coord):
@@ -81,29 +90,35 @@ class World:
             Define the chunks of the world
         """
         chunks = []
+        clouds = []
         central_chunk_x, central_chunk_z = central_chunk_coord
         for x in range(-5, 6):
             for z in range(-5, 6):
                 self.chunks_to_produce.put((central_chunk_x + x, central_chunk_z + z))
+                #self.clouds_to_produce.put((central_chunk_x + x, 90,central_chunk_z + z))
         
-        return chunks
+        return chunks, clouds
     
     def reDefineChunks(self, central_chunk_coord):
         """
             Re-define the chunks of the world using the near chunks that are already defined
         """
         new_chunks = []
-        for chunk in self.chunks:
+        new_clouds = []
+        for chunk, cloud in zip(self.chunks, self.clouds):
             if chunk.isNear(central_chunk_coord):
                 new_chunks.append(chunk)
+                #new_clouds.append(cloud)
         
         central_chunk_x, central_chunk_z = central_chunk_coord
         for x in range(-5, 6):
             for z in range(-5, 6):
                 if not self.isChunkDefined(new_chunks, (central_chunk_x + x, central_chunk_z + z)):
                     self.chunks_to_produce.put((central_chunk_x + x, central_chunk_z + z))
+                    #self.clouds_to_produce.put((central_chunk_x + x, 90,central_chunk_z + z))
 
-        return new_chunks
+
+        return new_chunks, new_clouds
 
     def isChunkDefined(self, chunks, chunk_coord):
         """
@@ -118,10 +133,10 @@ class World:
         
         self.central_chunk_coord = new_central_chunk_coord
 
-        self.chunks = self.reDefineChunks(self.central_chunk_coord)
+        self.chunks, self.clouds = self.reDefineChunks(self.central_chunk_coord)
 
         self.sky = Sky((16 * new_central_chunk_coord[0], 10, 16 * new_central_chunk_coord[1]))
-        self.moon = Moon((16 * new_central_chunk_coord[0] , 90, 16 * new_central_chunk_coord[1]))
+        self.moon = Moon((16 * new_central_chunk_coord[0] , 200, 16 * new_central_chunk_coord[1]))
     
     def draw(self, program, camera):
         """
@@ -136,7 +151,7 @@ class World:
 
         # Version 2 - Incomplete
 
-        self.light_theta += 0.001
+        self.light_theta += 0.01
         lightdir = (np.sin(self.light_theta), 1.0, np.cos(self.light_theta))
         loc_light_dir = glGetUniformLocation(program, "lightDir")
         glUniform3f(loc_light_dir, lightdir[0], lightdir[1], lightdir[2])
@@ -154,11 +169,18 @@ class World:
         glUniformMatrix4fv(loc_projection, 1, GL_TRUE, projection_array)
         
         self.loadTexture(TEXTURE_SKY)
-        self.sky.draw(program, camera, 0.001)
+        self.sky.draw(program, camera, self.light_theta)
     
         self.loadTexture(TEXTURE_ATLAS)
         while not self.chunks_to_render.empty():
             self.chunks.append(self.chunks_to_render.get())
         
+        """ while not self.clouds_to_render.empty():
+            self.clouds.append(self.chunks_to_render.get()) """
+        
         for chunk in self.chunks:
             chunk.draw(program, camera)
+        """ for cloud in self.clouds:
+            cloud.draw(program, camera) """
+
+        self.moon.draw(program, camera.view, camera.proj, self.light_theta)

@@ -8,7 +8,6 @@ class Sky:
         """
             Initialize the sky box centered around the light dir
         """
-        self.model = glm.rotate(glm.mat4(1.0), glm.radians(45.0), glm.vec3(1,0,0))
 
         self.vertices = self.defineVertices()
         self.texture = self.defineTexture()
@@ -160,9 +159,11 @@ class Sky:
             Draw the Sky
         """
 
-        self.model = glm.rotate(self.model, dtheta, glm.vec3(0,1,0))
+        modelTemp = glm.rotate(glm.mat4(1.0), dtheta, (0, 1, 0) )
+        model = glm.rotate(modelTemp, glm.radians(45.0), glm.vec3(1,0,0))
+
         loc_model = glGetUniformLocation(program, "model")
-        model_array = np.array(self.model, dtype=np.float32)
+        model_array = np.array(model, dtype=np.float32)
         glUniformMatrix4fv(loc_model, 1, GL_TRUE, model_array)
 
         loc_view = glGetUniformLocation(program, "view")
