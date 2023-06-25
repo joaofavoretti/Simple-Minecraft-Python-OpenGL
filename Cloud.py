@@ -38,8 +38,8 @@ class Cloud:
         cloudBlocks = []
 
         cloudBlocks.append(CloudBlock(pos))
-        for i in range(4):
-            for j in range(10):
+        for i in range(3):
+            for j in range(5):
                 cloudBlocks.append(CloudBlock((pos[0] + i, pos[1], pos[2]+j)))
                 cloudBlocks.append(CloudBlock((pos[0] - i, pos[1], pos[2]-j)))
                 cloudBlocks.append(CloudBlock((pos[0] - i, pos[1], pos[2]+j)))

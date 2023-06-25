@@ -34,6 +34,7 @@ class World:
         self.chunks, self.clouds = self.defineChunks(self.central_chunk_coord)
 
         self.start_worker()
+        self.start_worker2()
 
         self.light_theta = 0
         self.sky = Sky(self.light_theta)
@@ -68,22 +69,32 @@ class World:
 
     def __del__(self):
         self.chunks_to_produce.put(-1)
+        self.clouds_to_produce.put(-1)
         self.p.join()
+        self.p2.join()
 
-    def create_chunks(self, to_produce, to_render, clouds_to_produce, clouds_to_render):
+    def create_chunks(self, to_produce, to_render):
         while True:
             c = to_produce.get()
-            #cl = clouds_to_produce.get()
             if c == -1:
                 return
-            if(c != -1):
-                to_render.put(Chunk(c))
-            """ if(cl != -1):
-                clouds_to_render.put(Cloud(cl)) """
+            to_render.put(Chunk(c))
+
+    def create_clouds(self,clouds_to_produce, clouds_to_render):
+        while True:
+            cl = clouds_to_produce.get()
+            if cl == -1:
+                return
+            clouds_to_render.put(Cloud(cl))
 
     def start_worker(self):
-        self.p = multiprocessing.Process(target = self.create_chunks, args = (self.chunks_to_produce, self.chunks_to_render, self.clouds_to_produce, self.clouds_to_render))
+        self.p = multiprocessing.Process(target = self.create_chunks, args = (self.chunks_to_produce, self.chunks_to_render))
         self.p.start()
+
+    def start_worker2(self):
+        self.p2 = multiprocessing.Process(target = self.create_clouds, args = (self.clouds_to_produce, self.clouds_to_render))
+        self.p2.start()
+
 
     def defineChunks(self, central_chunk_coord):
         """
@@ -94,8 +105,9 @@ class World:
         central_chunk_x, central_chunk_z = central_chunk_coord
         for x in range(-5, 6):
             for z in range(-5, 6):
+
                 self.chunks_to_produce.put((central_chunk_x + x, central_chunk_z + z))
-                #self.clouds_to_produce.put((central_chunk_x + x, 90,central_chunk_z + z))
+                self.clouds_to_produce.put(((central_chunk_x + x)*16, 50,(central_chunk_z + z)*16))
         
         return chunks, clouds
     
@@ -108,14 +120,14 @@ class World:
         for chunk, cloud in zip(self.chunks, self.clouds):
             if chunk.isNear(central_chunk_coord):
                 new_chunks.append(chunk)
-                #new_clouds.append(cloud)
+                new_clouds.append(cloud)
         
         central_chunk_x, central_chunk_z = central_chunk_coord
         for x in range(-5, 6):
             for z in range(-5, 6):
+                self.clouds_to_produce.put(((central_chunk_x + x)*16, 50,(central_chunk_z + z)*16))
                 if not self.isChunkDefined(new_chunks, (central_chunk_x + x, central_chunk_z + z)):
                     self.chunks_to_produce.put((central_chunk_x + x, central_chunk_z + z))
-                    #self.clouds_to_produce.put((central_chunk_x + x, 90,central_chunk_z + z))
 
 
         return new_chunks, new_clouds
@@ -175,12 +187,12 @@ class World:
         while not self.chunks_to_render.empty():
             self.chunks.append(self.chunks_to_render.get())
         
-        """ while not self.clouds_to_render.empty():
-            self.clouds.append(self.chunks_to_render.get()) """
+        while not self.clouds_to_render.empty():
+            self.clouds.append(self.clouds_to_render.get())
         
         for chunk in self.chunks:
             chunk.draw(program, camera)
-        """ for cloud in self.clouds:
-            cloud.draw(program, camera) """
+        for cloud in self.clouds:
+            cloud.draw(program, camera)
 
         self.moon.draw(program, camera.view, camera.proj, self.light_theta)
