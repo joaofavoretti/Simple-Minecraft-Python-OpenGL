@@ -1,2 +1,7 @@
 PyGLM
 noise
+glfw
+pyopengl
+numpy
+pillow
+perlin_noise
