@@ -1,2 +1,8 @@
-PyGLM
-noise
+glfw==2.5.9
+noise==1.2.2
+numpy==1.24.3
+perlin-noise==1.12
+Pillow==9.5.0
+PyGLM==2.7.0
+PyOpenGL==3.1.7
+PyOpenGL-accelerate==3.1.7
