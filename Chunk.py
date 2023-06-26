@@ -10,6 +10,10 @@ from Dirt import Dirt
 from Stone import Stone
 from Leaves import Leaves
 from Wood import Wood
+from Chest import Chest
+from Furnace import Furnace
+from Closet import Closet
+from Plank import Plank
 
 VERTICES_PER_BLOCK = 24
 
@@ -57,12 +61,16 @@ class Chunk:
                     else:
                         blocks[(x,y,z)] = Stone((chunk_pos_x * 16 + x, chunk_pos_y + y, chunk_pos_z * 16 + z))
 
-                
+        
+        # Generates trees when needed
         if self.hasTree:
             height = int(self.noise([1 / 50.0, 1 / 50.0]) * 5 + 2) + 1
+
+            # Wood
             for h in range(3):
                 blocks[(1,height + h,1)] = Wood((chunk_pos_x * 16 + 1, chunk_pos_y + height + h, chunk_pos_z * 16 + 1))
-
+            
+            # Leaves
             for i in range(3):
                 for j in range(3):
                     blocks[(i, height + 3, j)] = Leaves((chunk_pos_x * 16 + i, chunk_pos_y + height + 3, chunk_pos_z * 16 + j))
@@ -72,22 +80,30 @@ class Chunk:
                     if i == 1 and j == 1:
                         blocks[(i, height + 5, j)] = Leaves((chunk_pos_x * 16 + i, chunk_pos_y + height + 5, chunk_pos_z * 16 + j))
          
+        # Generates houses when needed
         if self.hasHouse:
             height = int(self.noise([1 / 50.0, 1 / 50.0]) * 5 + 2) + 1
             for i in range(5):
                 for j in range(5):
-                    blocks[(i, height - 1, j)] = Stone((chunk_pos_x * 16 + i, chunk_pos_y + height - 1, chunk_pos_z * 16 + j))
-                    blocks[(i, height + 5, j)] = Stone((chunk_pos_x * 16 + i, chunk_pos_y + height + 5, chunk_pos_z * 16 + j))
+
+                    # Floor and Ceiling
+                    blocks[(i, height - 1, j)] = Plank((chunk_pos_x * 16 + i, chunk_pos_y + height - 1, chunk_pos_z * 16 + j))
+                    blocks[(i, height + 5, j)] = Plank((chunk_pos_x * 16 + i, chunk_pos_y + height + 5, chunk_pos_z * 16 + j))
+                    
+                    # Walls
                     if i == 0 or j == 0 or i == 4 or j == 4:
                         for h in range(5):
                             if i == 2 and j == 0 and (h == 0 or h == 1):
                                 continue
-                            blocks[(i, height + h, j)] = Stone((chunk_pos_x * 16 + i, chunk_pos_y + height + h, chunk_pos_z * 16 + j))
-                    
-            blocks[(1, height, 3)] = Dirt((chunk_pos_x * 16 + 1, chunk_pos_y + height, chunk_pos_z * 16 + 3))
-            blocks[(2, height, 3)] = Dirt((chunk_pos_x * 16 + 2, chunk_pos_y + height, chunk_pos_z * 16 + 3))
-            blocks[(3, height, 3)] = Dirt((chunk_pos_x * 16 + 3, chunk_pos_y + height, chunk_pos_z * 16 + 3))
-            blocks[(1, height + 1, 3)] = Dirt((chunk_pos_x * 16 + 1, chunk_pos_y + height + 1, chunk_pos_z * 16 + 3))
+                            blocks[(i, height + h, j)] = Plank((chunk_pos_x * 16 + i, chunk_pos_y + height + h, chunk_pos_z * 16 + j))
+            
+            # Objects inside House
+            blocks[(1, height, 3)] = Closet((chunk_pos_x * 16 + 1, chunk_pos_y + height, chunk_pos_z * 16 + 3))
+            blocks[(2, height, 3)] = Furnace((chunk_pos_x * 16 + 2, chunk_pos_y + height, chunk_pos_z * 16 + 3))
+            blocks[(3, height, 3)] = Chest((chunk_pos_x * 16 + 3, chunk_pos_y + height, chunk_pos_z * 16 + 3))
+
+            # This is actually a stack of boxes
+            blocks[(1, height + 1, 3)] = Closet((chunk_pos_x * 16 + 1, chunk_pos_y + height + 1, chunk_pos_z * 16 + 3))
 
         return blocks
 

@@ -64,7 +64,6 @@ class Camera:
         self.cameraPos += glm.normalize(glm.vec3(self.cameraFront.x, 0.0, self.cameraFront.z)) * deltaTime * 0.1
         
         # Andar em direcao a camera
-        # self.cameraPos += self.cameraFront * deltaTime * 0.1
         self.updateView()
 
     def moveBackward(self, deltaTime):

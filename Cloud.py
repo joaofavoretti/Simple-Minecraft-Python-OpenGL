@@ -11,12 +11,12 @@ class CloudBlock(Block):
     def __init__(self, pos):
 
         self.texture_indices = {
-            "top": (6, 1),
-            "bottom": (6, 1),
-            "left": (6, 1),
-            "right": (6, 1),
-            "front": (6, 1),
-            "back": (6, 1),
+            "top": (6, 5),
+            "bottom": (6, 5),
+            "left": (6, 5),
+            "right": (6, 5),
+            "front": (6, 5),
+            "back": (6, 5),
         }
         
         super().__init__(pos)
@@ -28,18 +28,18 @@ class Cloud:
     def __init__(self, pos):
         
         self.cloudBlocks = self.defineCloudBlocks(pos)
+        self.pos = pos
 
         self.vertices = self.getVertices()
         self.texture = self.getTexture()
         self.normals = self.getNormals()
 
-
     def defineCloudBlocks(self, pos):
         cloudBlocks = []
 
         cloudBlocks.append(CloudBlock(pos))
-        for i in range(4):
-            for j in range(10):
+        for i in range(3):
+            for j in range(5):
                 cloudBlocks.append(CloudBlock((pos[0] + i, pos[1], pos[2]+j)))
                 cloudBlocks.append(CloudBlock((pos[0] - i, pos[1], pos[2]-j)))
                 cloudBlocks.append(CloudBlock((pos[0] - i, pos[1], pos[2]+j)))
@@ -74,6 +74,10 @@ class Cloud:
             normals = np.vstack((normals, block.getNormals()))
         return normals
     
+    def isNear(self, central_chunk_coord):
+        aux = (self.pos[0]//16, self.pos[1]//16)
+
+        return abs(aux[0] - central_chunk_coord[0]) <= 5 and abs(aux[1] - central_chunk_coord[1]) <= 5
 
     def setVerticesAndTexture(self, program):
         if not hasattr(self, 'vertice_buffer'):
@@ -115,12 +119,14 @@ class Cloud:
 
         glVertexAttribPointer(loc, 3, GL_FLOAT, False, stride, offset)
 
-    def draw(self, program, camera):
+    def draw(self, program, camera, t):
         """
             Draw the chunk
         """
+
+
         loc_model = glGetUniformLocation(program, "model")
-        model_array = np.array(glm.mat4(1.0), dtype=np.float32)
+        model_array = np.array(glm.translate(glm.mat4(1.0), glm.vec3(0, 3 * np.cos(t), 0)), dtype=np.float32)
         glUniformMatrix4fv(loc_model, 1, GL_TRUE, model_array)
 
         loc_view = glGetUniformLocation(program, "view")

@@ -154,13 +154,13 @@ class Sky:
 
         glVertexAttribPointer(loc, 3, GL_FLOAT, False, stride, offset)
 
-    def draw(self, program, camera, dtheta):
+    def draw(self, program, camera, theta):
         """
             Draw the Sky
         """
 
-        modelTemp = glm.rotate(glm.mat4(1.0), dtheta, (0, 1, 0) )
-        model = glm.rotate(modelTemp, glm.radians(45.0), glm.vec3(1,0,0))
+        modelTemp = glm.rotate(glm.mat4(1.0), theta, glm.vec3(0,1,0))
+        model = glm.rotate(modelTemp, glm.radians(45.0), (1, 0, 0))
 
         loc_model = glGetUniformLocation(program, "model")
         model_array = np.array(model, dtype=np.float32)
